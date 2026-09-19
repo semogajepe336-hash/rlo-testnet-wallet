@@ -32,8 +32,8 @@ async function vaultGet(key:string){
  return new Promise<any>((resolve,reject)=>{
   const tx=db.transaction(STORE_NAME,"readonly");
   const req=tx.objectStore(STORE_NAME).get(key);
-  req.onsuccess=()=>resolve(req.result);
-  req.onerror=()=>reject(req.error);
+  req.onsuccess=()=>{const r=req.result;db.close();resolve(r)};
+  req.onerror=()=>{db.close();reject(req.error)};
  });
 }
 
@@ -42,8 +42,8 @@ async function vaultSet(key:string,value:any){
  return new Promise<void>((resolve,reject)=>{
   const tx=db.transaction(STORE_NAME,"readwrite");
   tx.objectStore(STORE_NAME).put(value,key);
-  tx.oncomplete=()=>resolve();
-  tx.onerror=()=>reject(tx.error);
+  tx.oncomplete=()=>{db.close();resolve()};
+  tx.onerror=()=>{db.close();reject(tx.error)};
  });
 }
 
