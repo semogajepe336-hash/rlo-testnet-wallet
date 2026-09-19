@@ -1,0 +1,452 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:#171717;
+  background:#f5f5f2;
+  font-synthesis:none;
+  text-rendering:optimizeLegibility;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body,#root{
+  margin:0;
+  min-height:100%;
+}
+
+body{
+  min-height:100vh;
+  background:#f5f5f2;
+  color:#171717;
+}
+
+button,
+input,
+select{
+  font:inherit;
+}
+
+button{
+  border:1px solid #171717;
+  background:#171717;
+  color:#fff;
+  border-radius:3px;
+  padding:11px 16px;
+  cursor:pointer;
+  font-weight:500;
+  transition:.15s ease;
+}
+
+button:hover:not(:disabled){
+  opacity:.82;
+}
+
+button:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+button.ghost{
+  background:transparent;
+  color:#171717;
+  border-color:#d0d0cb;
+}
+
+button.danger{
+  background:transparent;
+  color:#b42318;
+  border-color:#e1b7b3;
+}
+
+main{
+  width:min(1080px,calc(100% - 40px));
+  margin:0 auto;
+  padding:24px 0 48px;
+}
+
+header{
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid #d9d9d4;
+  position:relative;
+}
+
+header b{
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.04em;
+}
+
+header b i{
+  font-style:normal;
+}
+
+.menu-button{
+  width:40px;
+  height:40px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-color:#d0d0cb!important;
+  font-size:19px;
+}
+
+.hero{
+  padding:72px 0 52px;
+  border-bottom:1px solid #d9d9d4;
+}
+
+.hero small,
+.card small{
+  display:block;
+  color:#777773;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.12em;
+}
+
+.hero h1{
+  margin:12px 0 14px;
+  font-size:clamp(38px,6vw,64px);
+  line-height:1;
+  letter-spacing:-.045em;
+  font-weight:600;
+}
+
+.hero p{
+  max-width:610px;
+  margin:0;
+  color:#666661;
+  font-size:15px;
+  line-height:1.7;
+}
+
+.card{
+  background:#fafaf8;
+  border:1px solid #d9d9d4;
+  border-radius:4px;
+  padding:24px;
+  box-shadow:none;
+}
+
+.center{
+  text-align:center;
+}
+
+.wallet-manager{
+  margin-top:28px;
+}
+
+.wallet-manager h2,
+.send h2{
+  margin:6px 0 0;
+  font-size:18px;
+  font-weight:600;
+  letter-spacing:-.02em;
+}
+
+.wallet-manager > .row:first-child{
+  padding-bottom:20px;
+  border-bottom:1px solid #e1e1dc;
+}
+
+.wallet-manager select{
+  min-height:44px;
+  border:1px solid #cfcfc9;
+  border-radius:3px;
+  background:#fff;
+  color:#171717;
+  padding:0 12px;
+  outline:none;
+}
+
+.wallet-manager select:focus,
+input:focus{
+  border-color:#171717;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:16px;
+  margin-top:16px;
+}
+
+.balance{
+  margin-top:12px;
+  font-size:42px;
+  line-height:1.1;
+  letter-spacing:-.045em;
+  font-weight:600;
+}
+
+.balance em{
+  font-size:15px;
+  font-style:normal;
+  color:#777773;
+  letter-spacing:0;
+  font-weight:500;
+}
+
+.address-row{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:12px;
+}
+
+.address-row code{
+  color:#777773;
+  font-size:12px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.copy-address{
+  width:30px;
+  height:30px;
+  padding:0;
+  border:1px solid #d0d0cb;
+  background:transparent;
+  color:#555550;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.copy-address:hover:not(:disabled){
+  background:#eeeeea;
+  opacity:1;
+}
+
+.copy-address svg{
+  display:block;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.card .row{
+  margin-top:18px;
+}
+
+.send{
+  margin-top:16px;
+}
+
+.send label{
+  display:block;
+  margin:20px 0 7px;
+  color:#6f6f6a;
+  font-size:12px;
+  font-weight:500;
+}
+
+input{
+  width:100%;
+  height:46px;
+  border:1px solid #d0d0cb;
+  border-radius:3px;
+  background:#fff;
+  color:#171717;
+  padding:0 13px;
+  outline:none;
+}
+
+.amount{
+  display:flex;
+  align-items:center;
+  border:1px solid #d0d0cb;
+  background:#fff;
+  border-radius:3px;
+}
+
+.amount input{
+  border:0;
+  background:transparent;
+}
+
+.amount b{
+  padding-right:14px;
+  color:#777773;
+  font-size:12px;
+}
+
+.send > button{
+  width:100%;
+  margin-top:18px;
+}
+
+.status{
+  min-height:20px;
+  margin:18px 0 10px;
+  color:#686863;
+  font-size:12px;
+}
+
+.wallet-menu{
+  position:absolute;
+  top:76px;
+  right:0;
+  width:360px;
+  max-width:calc(100vw - 32px);
+  z-index:50;
+  margin:0;
+  box-shadow:0 18px 45px rgba(0,0,0,.08);
+}
+
+.wallet-menu-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.menu-close{
+  width:32px;
+  height:32px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  line-height:1;
+}
+
+.wallet-menu h2{
+  margin:7px 0;
+  font-size:18px;
+  font-weight:600;
+}
+
+.wallet-menu .warning{
+  color:#777773;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.wallet-menu .phrase{
+  margin:16px 0;
+  padding:14px;
+  background:#f1f1ed;
+  border:1px solid #deded9;
+  border-radius:3px;
+  word-break:break-word;
+  font-size:13px;
+  line-height:1.8;
+}
+
+.wallet-menu .row{
+  display:flex;
+  gap:8px;
+}
+
+.logo{
+  color:#171717;
+}
+
+footer{
+  margin-top:42px;
+  padding-top:18px;
+  border-top:1px solid #d9d9d4;
+  color:#8a8a85;
+  font-size:11px;
+}
+
+@media(max-width:600px){
+  main{
+    width:min(100% - 24px,1080px);
+    padding-top:12px;
+  }
+
+  .hero{
+    padding:52px 0 38px;
+  }
+
+  .hero h1{
+    font-size:42px;
+  }
+
+  .card{
+    padding:18px;
+  }
+
+  .wallet-menu{
+    top:64px;
+    right:0;
+    width:calc(100vw - 24px);
+  }
+
+  .balance{
+    font-size:36px;
+  }
+
+  .row{
+    flex-wrap:wrap;
+  }
+}
+
+.unlock-error{
+  margin:12px 0 0;
+  color:#b42318;
+  font-size:12px;
+}
+
+.forgot-password{
+  display:block;
+  margin:12px auto 0;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#777773;
+  font-size:12px;
+  font-weight:500;
+}
+
+.forgot-password:hover:not(:disabled){
+  color:#171717;
+  opacity:1;
+  text-decoration:underline;
+}
+
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.network-select{
+  height:36px;
+  padding:0 30px 0 12px;
+  border:1px solid #d8d8d2;
+  border-radius:10px;
+  background:#fff;
+  color:#171717;
+  font:inherit;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  outline:none;
+}
+
+.network-select:focus{
+  border-color:#999;
+}
+
+
+/* jarak di layar unlock/create vault */
+.card.center>button,
+.card.center input+button{margin-top:12px}
+.card.center .password-box{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.card.center .password-box input{width:100%}
+.card.center .password-box button{margin:0}
