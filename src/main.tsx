@@ -880,7 +880,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
    <div className="status">{status}</div><button className="danger" disabled={busy||!activeWallet} onClick={deleteActiveWallet}>Delete Wallet</button>
   </>}
-  <footer>Rialo Testnet · https://testnet.rialo.io</footer>
+  <footer>Rialo Testnet ·</footer>
  </main>
 }
 createRoot(document.getElementById("root")!).render(<App/>);
