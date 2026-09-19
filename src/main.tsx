@@ -552,7 +552,7 @@ function copyAddress(){
 
  return <main>
   <header>
-  <b>Rialo Wallet</b>
+  <b>RIALO Wallet</b>
   <div className="header-actions">
     <select
       className="network-select"
