@@ -124,7 +124,7 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
- const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO");
+ const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null);
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -253,6 +253,19 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
  if(res.executed===true&&!res.err){setStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey)}else{setStatus("Swap failed on-chain.")}
  }catch(e:any){setStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
+ }
+ function swapPct(p:number){
+ const t2r=swapDir==="test2rialo";
+ const b=t2r?parseFloat((testBal||"0").replace(/,/g,"")):Math.max(0,parseFloat(bal||"0")-0.01);
+ setSwapAmt(String(+(b*p/100).toFixed(t2r?6:9)));
+ }
+ async function loadLiq(){
+ try{
+ const P=(s:string)=>PublicKey.fromString(s);
+ const t:any=await client.getTokenAccountBalance(P("EB8MZ8usqZSjh6TNJwEEnEurH4ojFXnNTzrAaZPDuG9b"));
+ const r:any=await client.getBalance(P("CvbVJTpgDixPoCPVNBbbKdjcSo4awnC6rMCpQSBzACY4"));
+ setLiq({test:parseFloat(t.uiAmountString),rialo:Number(r)/KELVIN_PER_RLO});
+ }catch(e:any){setLiq(null)}
  }
  function askSwap(){
  const n=parseFloat(swapAmt);
@@ -941,27 +954,44 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 </div>
 </div>}
 {network!=="devnet"&&<section className="card swap" style={{marginTop:"14px"}}>
-<div onClick={()=>setSwapOpen(!swapOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<div onClick={()=>{setSwapOpen(!swapOpen);loadLiq()}} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
 <div><small>SWAP</small></div>
 <span style={{fontSize:"22px"}}>{swapOpen?"▴":"▾"}</span>
 </div>
-{swapOpen&&<div>
-<div className="card" style={{marginTop:"12px"}}>
-<div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
-<strong>{swapDir==="test2rialo"?"TEST":"RIALO"}</strong>
-<button type="button" className="ghost" disabled={busy} onClick={()=>{const b=swapDir==="test2rialo"?parseFloat((testBal||"0").replace(/,/g,"")):Math.max(0,parseFloat(bal||"0")-0.001);setSwapAmt(String(b))}}>Max</button>
+{swapOpen&&(()=>{
+const t2r=swapDir==="test2rialo",tk=t2r?"TEST":"RIALO",tk2=t2r?"RIALO":"TEST";
+const n=parseFloat(swapAmt),have=parseFloat((t2r?(testBal||"0"):(bal||"0")).replace(/,/g,""));
+const get=n>0?+(n*(t2r?0.1:10)).toFixed(6):0;
+const noLiq=!!liq&&n>0&&get>(t2r?liq.rialo-0.01:liq.test);
+const label=!(n>0)?"Enter an amount":n>have?"Insufficient "+tk:noLiq?"Insufficient liquidity":busy?"Processing…":"Swap";
+const off=busy||!(n>0)||n>have||noLiq;
+const row=(a:string,b:string)=><div style={{display:"flex",justifyContent:"space-between",margin:"8px 0",gap:"12px"}}><small>{a}</small><small style={{color:"#111",textAlign:"right"}}>{b}</small></div>;
+return <div style={{marginTop:"12px"}}>
+<div className="card" style={{padding:"14px"}}>
+<div style={{display:"flex",justifyContent:"space-between"}}><small>From</small><small>Balance: {have}</small></div>
+<div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:"8px"}}>
+<input value={swapAmt} onChange={e=>setSwapAmt(e.target.value)} inputMode="decimal" placeholder="0" style={{flex:1,minWidth:0,fontSize:"32px",fontWeight:700,border:"none",background:"transparent",outline:"none"}}/>
+<strong style={{fontSize:"18px"}}>{tk}</strong>
 </div>
-<small>Balance: {swapDir==="test2rialo"?(testBal||"0"):(bal||"0")}</small>
-<input value={swapAmt} onChange={e=>setSwapAmt(e.target.value)} inputMode="decimal" placeholder="0" style={{width:"100%",fontSize:"36px",fontWeight:700,border:"none",background:"transparent",marginTop:"8px"}}/>
+<div style={{display:"flex",gap:"8px",marginTop:"12px"}}>
+{[25,50,75,100].map(p=><button key={p} type="button" className="ghost" disabled={busy} style={{flex:1,padding:"8px 0",fontSize:"14px"}} onClick={()=>swapPct(p)}>{p===100?"Max":p+"%"}</button>)}
 </div>
-<div style={{display:"flex",justifyContent:"center",margin:"-10px 0"}}><button type="button" className="ghost" disabled={busy} style={{borderRadius:"50%",width:"44px",height:"44px",padding:0}} onClick={()=>{setSwapDir(swapDir==="test2rialo"?"rialo2test":"test2rialo");setSwapAmt("")}}>⇅</button></div>
-<div className="card">
-<strong>{swapDir==="test2rialo"?"RIALO":"TEST"}</strong>
-<div style={{fontSize:"36px",fontWeight:700,marginTop:"8px"}}>{(()=>{const n=parseFloat(swapAmt);return n>0?String(+(n*(swapDir==="test2rialo"?0.1:10)).toFixed(6)):"0"})()}</div>
 </div>
-<small>{swapDir==="test2rialo"?"1 TEST ≈ 0.1 RIALO":"1 RIALO ≈ 10 TEST"}</small>
-<button disabled={busy||!(parseFloat(swapAmt)>0)} onClick={askSwap}>{busy?"Processing…":"Swap"}</button>
-</div>}
+<div style={{display:"flex",justifyContent:"center",margin:"-12px 0",position:"relative",zIndex:1}}><button type="button" className="ghost" disabled={busy} style={{borderRadius:"50%",width:"44px",height:"44px",padding:0,background:"#fafaf8"}} onClick={()=>{setSwapDir(t2r?"rialo2test":"test2rialo");setSwapAmt("")}}>⇅</button></div>
+<div className="card" style={{padding:"14px"}}>
+<small>To (estimated)</small>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:"8px"}}><span style={{fontSize:"32px",fontWeight:700}}>{get||"0"}</span><strong style={{fontSize:"18px"}}>{tk2}</strong></div>
+</div>
+<div style={{marginTop:"14px"}}>
+{row("Rate",t2r?"1 TEST = 0.1 RIALO":"1 RIALO = 10 TEST")}
+{row("Min. received",get+" "+tk2)}
+{row("Slippage","0% (fixed rate)")}
+{row("Price impact","0%")}
+{row("Network fee","~0.000005 RIALO")}
+{row("Pool liquidity",liq?liq.test.toLocaleString("en-US")+" TEST / "+liq.rialo.toFixed(2)+" RIALO":"—")}
+</div>
+<button style={{width:"100%",marginTop:"10px"}} disabled={off} onClick={askSwap}>{label}</button>
+</div>})()}
 </section>}
 
    <section className="card send" style={{marginTop:"14px"}}>
