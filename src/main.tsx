@@ -6,6 +6,13 @@ const TK22=PublicKey.fromString("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 const TMINT=PublicKey.fromString("BV7xahNAH9vnwE3bNzNf1iHpuokk8cdj8iMoka7DnM1M");
 const ATAP=PublicKey.fromString("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 const ataOf=(o:any)=>PublicKey.findProgramAddress([o.toBytes(),TK22.toBytes(),TMINT.toBytes()],ATAP)[0];
+const testXfer=(from:any,dest:any,n:number):any[]=>{
+ const A=(k:any,w:boolean,s=false)=>({pubkey:k,isSigner:s,isWritable:w});
+ const sys:any=typeof SYSTEM_PROGRAM_ID==="string"?PublicKey.fromString(SYSTEM_PROGRAM_ID):SYSTEM_PROGRAM_ID;
+ const d=new Uint8Array(10);d[0]=12;new DataView(d.buffer).setBigUint64(1,BigInt(Math.round(n*1e6)),true);d[9]=6;
+ return [{programId:ATAP,data:new Uint8Array([1]),accounts:[A(from,true,true),A(ataOf(dest),true),A(dest,false),A(TMINT,false),A(sys,false),A(TK22,false)]},
+ {programId:TK22,data:d,accounts:[A(ataOf(from),true),A(TMINT,false),A(ataOf(dest),true),A(from,false,true)]}];
+};
 const hexToBytes=(h:string)=>{const c=h.trim().replace(/^0x/i,"");if(!/^[0-9a-fA-F]{64}$/.test(c))throw Error("Private key harus 64 karakter hex.");return Uint8Array.from(c.match(/.{2}/g)!.map(b=>parseInt(b,16)))};
 const bytesToHex=(b:Uint8Array)=>Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");
 async function walletToKeypair(w:any){return w.type==="privateKey"?Keypair.fromSecretKey(hexToBytes(w.secret)):Mnemonic.fromPhrase(w.phrase).toKeypair(0)}
@@ -117,7 +124,7 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
- const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null);
+ const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO");
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -261,7 +268,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const d=PublicKey.fromString(to.trim());
  const n=Number(amount);
  if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
- setConfirmBox({title:"Confirm Transfer",rows:[["To",d.toString()],["Amount",n+" RIALO"],["Network fee","~0.000005 RIALO"]],run:send});
+ setConfirmBox({title:"Confirm Transfer",rows:[["To",d.toString()],["Amount",n+" "+xferToken],["Network fee","~0.000005 RIALO"]],run:send});
  }catch(e:any){setStatus("Send failed: "+(e?.message||e))}
  }
  async function loadTest(pub=kp?.publicKey){
@@ -522,10 +529,12 @@ async function send(){
    const dest=PublicKey.fromString(to.trim()),n=Number(amount);
    if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
    const prefix=await client.getConfigHashPrefix();
-   const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix)
-    .addInstruction(transferInstruction(kp.publicKey,dest,BigInt(Math.round(n*KELVIN_PER_RLO)))).build();
+   const ixs:any[]=xferToken==="TEST"?testXfer(kp.publicKey,dest,n):[transferInstruction(kp.publicKey,dest,BigInt(Math.round(n*KELVIN_PER_RLO)))];
+   let tb:any=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix);
+   for(const i of ixs)tb=tb.addInstruction(i);
+   const tx=tb.build();
    setStatus("Signing and submitting…");const sig=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
-   setStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh()
+   const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest()
   }catch(e:any){setStatus("Send failed: "+(e?.message||e))}finally{setBusy(false)}
  }
  async function deleteActiveWallet(){
@@ -933,7 +942,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 </div>}
 {network!=="devnet"&&<section className="card swap" style={{marginTop:"14px"}}>
 <div onClick={()=>setSwapOpen(!swapOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-<div><small>SWAP</small><h2 style={{margin:0}}>Swap</h2></div>
+<div><small>SWAP</small></div>
 <span style={{fontSize:"22px"}}>{swapOpen?"▴":"▾"}</span>
 </div>
 {swapOpen&&<div>
@@ -957,12 +966,14 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
    <section className="card send" style={{marginTop:"14px"}}>
     <div onClick={()=>setSendOpen(!sendOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-<div><small>TRANSFER</small><h2 style={{margin:0}}>Transfer</h2></div>
+<div><small>TRANSFER</small></div>
 <span style={{fontSize:"22px"}}>{sendOpen?"▴":"▾"}</span>
 </div>
 {sendOpen&&<div>
 
-    <label>Recipient address</label>
+    <label>Token</label>
+<select value={xferToken} disabled={busy} style={{border:"none",background:"transparent",boxShadow:"none",outline:"none",width:"auto",padding:0}} onChange={e=>setXferToken(e.target.value as any)}><option value="RIALO">RIALO</option>{network!=="devnet"&&<option value="TEST">TEST</option>}</select>
+<label>Recipient address</label>
     <input
       value={to}
       onChange={e=>setTo(e.target.value)}
@@ -979,7 +990,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
         onChange={e=>setAmount(e.target.value)}
         placeholder="0.0"
       />
-      <b>Rialo</b>
+      <b>{xferToken}</b>
     </div>
 
     <button
