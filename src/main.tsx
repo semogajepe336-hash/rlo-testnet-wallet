@@ -113,6 +113,7 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
+ const[testBal,setTestBal]=useState<string|null>(null);
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -147,7 +148,7 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
     const b=await client.getBalance(kp.publicKey);
 
     if(!cancelled){
-     setBal((Number(b)/KELVIN_PER_RLO).toFixed(6));
+     setBal((Number(b)/KELVIN_PER_RLO).toFixed(6));loadTest(kp.publicKey);
      setStatus(`Balance loaded from ${network==="devnet"?"DevNet":"Testnet"}.`);
     }
    }catch(e:any){
@@ -212,6 +213,16 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
  }
 
  async function refresh(pub=kp?.publicKey){if(!pub)return;try{const b=await client.getBalance(pub);setBal((Number(b)/KELVIN_PER_RLO).toFixed(6))}catch(e:any){setStatus("Balance error: "+(e?.message||e))}}
+ async function loadTest(pub=kp?.publicKey){
+ if(!pub)return;
+ try{
+ const a:any=await client.getAccountInfo(PublicKey.fromString("Hp3itcS1yLWvCeMMxVt833iDSxC4kXegAYC4AN6R4cgg"));
+ const u=Uint8Array.from(atob(a.data[0]),c=>c.charCodeAt(0));
+ const dv=new DataView(u.buffer);
+ const same=new PublicKey(u.slice(32,64)).toString()===pub.toString();
+ setTestBal(same?(Number(dv.getBigUint64(64,true))/1e6).toLocaleString("en-US",{maximumFractionDigits:6}):null);
+ }catch(e:any){setTestBal(null)}
+ }
 
  async function create(){
   if(!vaultPassword){
@@ -689,7 +700,10 @@ if(active){
 }
 
 setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.");}}}>Unlock Vault</button><button type="button" className="forgot-password" onClick={resetVault}>Forgot Password?</button>{status==="Incorrect password. Please try again."&&<p className="unlock-error">Incorrect password. Please try again.</p>}</section>:
-  !kp?<section className="card center"><div className="logo">◎</div><h2>Rialo Wallet</h2><p>Your vault is unlocked. Create or import a wallet to continue.</p><button disabled={busy} onClick={create}>{busy?"Creating...":"Create Wallet"}</button><button className="ghost" onClick={()=>setImporting(!importing)}>{importing?"Close Import":"Import Mnemonic"}</button></section>:
+  !kp?<section className="card center"><div className="logo">◎</div><h2>Rialo Wallet</h2><p>Your vault is unlocked. Create or import a wallet to continue.</p><button disabled={busy} onClick={create}>{busy?"Creating...":"Create Wallet"}</button><button className="ghost" onClick={()=>{setImportMode("phrase");setImp("");setImporting(importMode!=="phrase"||!importing)}}>Import Mnemonic</button><button className="ghost" onClick={()=>{setImportMode("key");setImp("");setImporting(importMode!=="key"||!importing)}}>Import Private Key</button>{importing&&<div style={{marginTop:"14px"}}>
+<textarea value={imp} onChange={e=>setImp(e.target.value)} placeholder={importMode==="key"?"64-character hex private key":"Enter your recovery phrase"} autoCapitalize="off" autoCorrect="off" spellCheck={false} rows={4} style={{width:"100%"}}/>
+<button disabled={busy||!imp.trim()} onClick={importMode==="key"?restoreKey:restore}>{busy?"Importing...":"Import Wallet"}</button>
+</div>}<div className="status">{status}</div></section>:
   <>
    <section className="card wallet-manager">
     <div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
@@ -824,6 +838,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     <div className="card">
       <small>BALANCE</small>
       <div className="balance">{bal}<em> Rialo</em></div>
+      {testBal!==null&&<div className="balance">{testBal}<em> TEST</em></div>}
       <div className="address-row">
         <code>{short(addr)}</code>
         <button
