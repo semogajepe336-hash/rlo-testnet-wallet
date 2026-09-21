@@ -1,6 +1,6 @@
 import React,{useEffect,useMemo,useState}from"react";
 import{createRoot}from"react-dom/client";
-import{Keypair,Mnemonic,PublicKey,TransactionBuilder,transferInstruction,createRialoClient,getDefaultRialoClientConfig,KELVIN_PER_RLO}from"@rialo/ts-cdk";
+import{Keypair,Mnemonic,PublicKey,TransactionBuilder,transferInstruction,createRialoClient,getDefaultRialoClientConfig,KELVIN_PER_RLO,SYSTEM_PROGRAM_ID}from"@rialo/ts-cdk";
 import"./styles.css";
 const hexToBytes=(h:string)=>{const c=h.trim().replace(/^0x/i,"");if(!/^[0-9a-fA-F]{64}$/.test(c))throw Error("Private key harus 64 karakter hex.");return Uint8Array.from(c.match(/.{2}/g)!.map(b=>parseInt(b,16)))};
 const bytesToHex=(b:Uint8Array)=>Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");
@@ -113,7 +113,7 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
- const[testBal,setTestBal]=useState<string|null>(null);
+ const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null);
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -153,7 +153,7 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
     }
    }catch(e:any){
     if(!cancelled){
-     setStatus(`Balance error: ${e?.message||e}`);
+     setTestBal(null);setStatus(`Balance error: ${e?.message||e}`);
     }
    }
   }
@@ -213,6 +213,52 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
  }
 
  async function refresh(pub=kp?.publicKey){if(!pub)return;try{const b=await client.getBalance(pub);setBal((Number(b)/KELVIN_PER_RLO).toFixed(6))}catch(e:any){setStatus("Balance error: "+(e?.message||e))}}
+ async function doSwap(){
+ if(!kp)return;
+ const n=parseFloat(swapAmt);
+ if(!(n>0)){setStatus("Enter a valid swap amount.");return}
+ if(kp.publicKey.toString()!=="Ec94FMM7w7XRj2xdRLsFgwJyyN5r2uwMepy2D5Y5qmHQ"){setStatus("Swap only works for the test wallet for now.");return}
+ setBusy(true);
+ try{
+ const P=(s:string)=>PublicKey.fromString(s);
+ const SYS:any=typeof SYSTEM_PROGRAM_ID==="string"?P(SYSTEM_PROGRAM_ID):SYSTEM_PROGRAM_ID;
+ const t2r=swapDir==="test2rialo";
+ const data=new Uint8Array(9);
+ data[0]=t2r?0:1;
+ new DataView(data.buffer).setBigUint64(1,BigInt(Math.round(n*(t2r?1e6:1e9))),true);
+ const A=(k:any,w:boolean,s=false)=>({pubkey:k,isSigner:s,isWritable:w});
+ const ix:any={programId:P("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG"),data,accounts:[
+ A(kp.publicKey,true,true),
+ A(P("Hp3itcS1yLWvCeMMxVt833iDSxC4kXegAYC4AN6R4cgg"),true),
+ A(P("EB8MZ8usqZSjh6TNJwEEnEurH4ojFXnNTzrAaZPDuG9b"),true),
+ A(P("BV7xahNAH9vnwE3bNzNf1iHpuokk8cdj8iMoka7DnM1M"),false),
+ A(P("CvbVJTpgDixPoCPVNBbbKdjcSo4awnC6rMCpQSBzACY4"),true),
+ A(P("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"),false),
+ A(SYS,false)]};
+ const prefix=await client.getConfigHashPrefix();
+ const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix).addInstruction(ix).build();
+ setStatus("Signing and submitting swap…");
+ const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
+ if(res.executed===true&&!res.err){setStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey)}else{setStatus("Swap failed on-chain.")}
+ }catch(e:any){setStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
+ }
+ function askSwap(){
+ const n=parseFloat(swapAmt);
+ if(!(n>0)){setStatus("Enter a valid swap amount.");return}
+ const t2r=swapDir==="test2rialo";
+ const get=+(n*(t2r?0.1:10)).toFixed(6);
+ const rows=[["You pay",n+" "+(t2r?"TEST":"RIALO")],["You receive (est.)",get+" "+(t2r?"RIALO":"TEST")]];
+ rows.push(["Rate",t2r?"1 TEST = 0.1 RIALO":"1 RIALO = 10 TEST"],["Network fee","~0.000005 RIALO"]);
+ setConfirmBox({title:"Confirm Swap",rows,run:doSwap});
+ }
+ function askSend(){
+ try{
+ const d=PublicKey.fromString(to.trim());
+ const n=Number(amount);
+ if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
+ setConfirmBox({title:"Confirm Send",rows:[["To",d.toString()],["Amount",n+" RIALO"],["Network fee","~0.000005 RIALO"]],run:send});
+ }catch(e:any){setStatus("Send failed: "+(e?.message||e))}
+ }
  async function loadTest(pub=kp?.publicKey){
  if(!pub)return;
  try{
@@ -838,7 +884,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     <div className="card">
       <small>BALANCE</small>
       <div className="balance">{bal}<em> Rialo</em></div>
-      {testBal!==null&&<div className="balance">{testBal}<em> TEST</em></div>}
+      {network!=="devnet"&&testBal!==null&&<div className="balance">{testBal}<em> TEST</em></div>}
       <div className="address-row">
         <code>{short(addr)}</code>
         <button
@@ -861,9 +907,46 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </div>
    </section>
 
-   <section className="card send">
-    <small>SEND RIALO</small>
-    <h2>Transfer on Rialo {network==="devnet"?"DevNet":"Testnet"}</h2>
+   {confirmBox&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50,padding:"20px"}}>
+<div className="card" style={{width:"100%",maxWidth:"420px",background:"#fafaf8"}}>
+<h2 style={{marginTop:0}}>{confirmBox.title}</h2>
+{confirmBox.rows.map((r:any,i:number)=><div key={i} className="row" style={{justifyContent:"space-between",margin:"10px 0",gap:"12px"}}><small>{r[0]}</small><strong style={{wordBreak:"break-all",textAlign:"right"}}>{r[1]}</strong></div>)}
+<div className="row" style={{marginTop:"16px",justifyContent:"flex-end"}}>
+<button type="button" className="ghost" onClick={()=>setConfirmBox(null)}>Cancel</button>
+<button type="button" onClick={()=>{const r=confirmBox.run;setConfirmBox(null);r()}}>Confirm</button>
+</div>
+</div>
+</div>}
+{network!=="devnet"&&<section className="card swap" style={{marginTop:"14px"}}>
+<div onClick={()=>setSwapOpen(!swapOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<div><small>SWAP</small><h2 style={{margin:0}}>Swap TEST ⇄ RIALO</h2></div>
+<span style={{fontSize:"22px"}}>{swapOpen?"▴":"▾"}</span>
+</div>
+{swapOpen&&<div>
+<div className="card" style={{marginTop:"12px"}}>
+<div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
+<strong>{swapDir==="test2rialo"?"TEST":"RIALO"}</strong>
+<button type="button" className="ghost" disabled={busy} onClick={()=>{const b=swapDir==="test2rialo"?parseFloat((testBal||"0").replace(/,/g,"")):Math.max(0,parseFloat(bal||"0")-0.001);setSwapAmt(String(b))}}>Max</button>
+</div>
+<small>Balance: {swapDir==="test2rialo"?(testBal||"0"):(bal||"0")}</small>
+<input value={swapAmt} onChange={e=>setSwapAmt(e.target.value)} inputMode="decimal" placeholder="0" style={{width:"100%",fontSize:"36px",fontWeight:700,border:"none",background:"transparent",marginTop:"8px"}}/>
+</div>
+<div style={{display:"flex",justifyContent:"center",margin:"-10px 0"}}><button type="button" className="ghost" disabled={busy} style={{borderRadius:"50%",width:"44px",height:"44px",padding:0}} onClick={()=>{setSwapDir(swapDir==="test2rialo"?"rialo2test":"test2rialo");setSwapAmt("")}}>⇅</button></div>
+<div className="card">
+<strong>{swapDir==="test2rialo"?"RIALO":"TEST"}</strong>
+<div style={{fontSize:"36px",fontWeight:700,marginTop:"8px"}}>{(()=>{const n=parseFloat(swapAmt);return n>0?String(+(n*(swapDir==="test2rialo"?0.1:10)).toFixed(6)):"0"})()}</div>
+</div>
+<small>{swapDir==="test2rialo"?"1 TEST ≈ 0.1 RIALO":"1 RIALO ≈ 10 TEST"}</small>
+<button disabled={busy||!(parseFloat(swapAmt)>0)} onClick={askSwap}>{busy?"Processing…":"Swap"}</button>
+</div>}
+</section>}
+
+   <section className="card send" style={{marginTop:"14px"}}>
+    <div onClick={()=>setSendOpen(!sendOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+<div><small>SEND RIALO</small><h2 style={{margin:0}}>Transfer on Rialo {network==="devnet"?"DevNet":"Testnet"}</h2></div>
+<span style={{fontSize:"22px"}}>{sendOpen?"▴":"▾"}</span>
+</div>
+{sendOpen&&<div>
 
     <label>Recipient address</label>
     <input
@@ -887,10 +970,11 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
     <button
       disabled={busy||!to||!amount}
-      onClick={send}
+      onClick={askSend}
     >
       {busy?"Processing…":"Send Rialo"}
     </button>
+    </div>}
    </section>
 
    <div className="status">{status}</div><button className="danger" disabled={busy||!activeWallet} onClick={deleteActiveWallet}>Delete Wallet</button>
