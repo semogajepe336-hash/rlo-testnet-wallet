@@ -132,6 +132,7 @@ function App(){
  const[vaultUnlocked,setVaultUnlocked]=useState(false);
  const[showVaultPassword,setShowVaultPassword]=useState(false);
  const[menuOpen,setMenuOpen]=useState(false);
+const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap">("home");
 const[recoveryOpen,setRecoveryOpen]=useState(false);
 
  async function initializeVault(){
@@ -551,6 +552,7 @@ function copyKey(){
       await new Promise(r=>setTimeout(r,2000));
       await refresh(publicKey);
     }
+    setStatus("");
   }catch(e:any){
     console.error("Faucet error:",e);
     setStatus(`Faucet failed on ${network==="devnet"?"DevNet":"Testnet"}: ${e?.message||String(e)}`);
@@ -677,6 +679,7 @@ function copyAddress(){
         const next=e.target.value as "testnet"|"devnet";
         setNetwork(next);
         setBal(null);
+        if(next==="devnet" && view==="swap") setView("home");
         setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}.`);
       }}
       aria-label="Network"
@@ -783,7 +786,7 @@ function copyAddress(){
     </section>
   )}
 
-  <section className="hero"><small>RIALO TESTNET</small><h1>A simple wallet for the Rialo testnet.</h1><p>Create, manage, and send Rialo on-chain.</p></section>
+  <section className="hero"><small>RIALO TESTNET</small><h1>One Wallet.<br/>The Entire Rialo Ecosystem.</h1><p>Manage your assets, swap tokens, and explore Rialo on-chain.</p></section>
   {!vaultExists?<section className="card center"><div className="logo">◎</div><h2>Create Your Vault</h2><p>Your wallet data will be encrypted and stored securely on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Create vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><small>Use at least 8 characters with both letters and numbers.</small>{vaultPassword&&<div className="password-strength"><span>Password strength:</span><strong>{passwordStrength(vaultPassword)}</strong></div>}<button disabled={busy||!isValidVaultPassword(vaultPassword)} onClick={createVault}>{busy?"Creating...":"Create Vault"}</button></section>:
   !vaultUnlocked?<section className="card center"><div className="logo">◎</div><h2>Unlock Your Vault</h2><p>Your wallets are stored in an encrypted vault on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><button disabled={!vaultPassword} onClick={async()=>{try{const data=await vaultGet("wallets");const plain=await decryptVault(data,vaultPassword);const parsed=JSON.parse(plain);
 const list=parsed.wallets||[];
@@ -810,18 +813,21 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 <button disabled={busy||!imp.trim()} onClick={importMode==="key"?restoreKey:restore}>{busy?"Importing...":"Import Wallet"}</button>
 </div>}<div className="status">{status}</div></section>:
   <>
+   {view==="home"&&<>
    <section className="card wallet-manager">
     <div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
       <div>
         <small>WALLET</small>
-        <h2>Wallet Manager</h2>
+        <h2>Main Wallet</h2>
       </div>
 
       <button
+        className="add-wallet-button"
+        aria-label="Add Wallet"
         disabled={busy}
         onClick={()=>setAddWalletOpen(!addWalletOpen)}
       >
-        + Add Wallet
+        +
       </button>
     </div>
 
@@ -942,143 +948,483 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </div>
    </section>
 
-   <section className="grid">
-    <div className="card">
-      <small><Ic d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3M3 7v11a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4M3 7l3-3h9"/>BALANCE</small>
-      <div className="balance" style={{marginTop:"14px",paddingTop:"14px",borderTop:"1px solid #ececE6"}}>{bal}<em> Rialo</em></div>
-      {network!=="devnet"&&testBal!==null&&<div className="balance" style={{marginTop:"14px",paddingTop:"14px",borderTop:"1px solid #ececE6",paddingBottom:"14px",borderBottom:"1px solid #ececE6"}}>{testBal}<em> TEST</em></div>}
-      <div className="address-row">
-        <code>{short(addr)}</code>
-        <button
-          className="copy-address"
-          disabled={busy||!addr}
-          onClick={copyAddress}
-          title="Copy wallet address"
-          aria-label="Copy wallet address"
+    <section className="grid">
+      <div className="card balance-card">
+
+        <small>TOTAL BALANCE</small>
+
+        <div className="balance" style={{marginTop:"10px"}}>
+          {bal ?? "—"}<em> RIALO</em>
+        </div>
+
+        <div className="address-row">
+          <code>{short(addr)}</code>
+          <button
+            className="copy-address"
+            disabled={busy||!addr}
+            onClick={copyAddress}
+            title="Copy wallet address"
+            aria-label="Copy wallet address"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="11" height="11" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className={`wallet-actions ${network==="devnet"?"wallet-actions-devnet":""}`}>
+          <button
+            disabled={busy}
+            onClick={()=>{setXferToken("RIALO");setView("send")}}
+          >
+            <span className="action-icon">↑</span>
+            <small>SEND</small>
+          </button>
+
+          <button
+            className="ghost"
+            disabled={busy||!addr}
+            onClick={()=>setView("receive")}
+          >
+            <span className="action-icon">↓</span>
+            <small>RECEIVE</small>
+          </button>
+
+          <button
+            className="ghost"
+            disabled={busy}
+            onClick={faucet}
+          >
+            <span className="action-icon">+</span>
+            <small>FAUCET</small>
+          </button>
+
+          {network!=="devnet"&&
+          <button
+            className="ghost"
+            disabled={busy}
+            onClick={async()=>{setView("swap");await loadLiq()}}
+          >
+            <span className="action-icon">⇄</span>
+            <small>SWAP</small>
+          </button>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section className="assets-section">
+      <small>ASSETS</small>
+
+      {network!=="devnet"&&testBal!==null&&
+        <div
+          className="asset-item test-asset-item"
+          style={{cursor:"pointer"}}
+          onClick={()=>setView("test")}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="9" y="9" width="11" height="11" rx="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
+          <div>
+            <div className="asset-name">TEST</div>
+            <div className="asset-symbol">Test Token</div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+            <div className="asset-value">{testBal}</div>
+            <span>›</span>
+          </div>
+        </div>
+      }
+    </section>
+
+    <section
+      className="card"
+      style={{marginTop:"14px",cursor:"pointer"}}
+      onClick={async()=>{
+        const o=!histOpen;
+        setHistOpen(o);
+        if(o&&kp) await loadHistory(kp.publicKey);
+      }}
+    >
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <small>ACTIVITY</small>
+          <h3 style={{margin:"5px 0 0"}}>Recent activity</h3>
+        </div>
+        <span style={{fontSize:"22px"}}>{histOpen?"▴":"›"}</span>
+      </div>
+
+      {histOpen&&
+        <div style={{marginTop:"14px"}}>
+          {histLoading&&<small>Loading…</small>}
+
+          {!histLoading&&histItems.length===0&&
+            <small>No transactions yet.</small>
+          }
+
+          {histItems.map((h:any,i:number)=>
+            <div
+              key={i}
+              className="row"
+              style={{
+                justifyContent:"space-between",
+                alignItems:"center",
+                padding:"12px 0",
+                borderBottom:"1px solid #eee"
+              }}
+            >
+              <div>
+                <div style={{fontWeight:650}}>
+                  {h.kind}
+                  {!h.ok&&<span style={{color:"#c0392b"}}> · Failed</span>}
+                </div>
+                <small>{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
+              </div>
+
+              <button
+                type="button"
+                className="ghost"
+                onClick={()=>navigator.clipboard?.writeText(h.sig)}
+              >
+                {h.sig.slice(0,6)}…{h.sig.slice(-6)}
+              </button>
+            </div>
+          )}
+        </div>
+      }
+    </section>
+   </>}
+
+   {view==="send"&&
+    <section className="card page-card">
+      <button className="ghost back-button" onClick={()=>setView("home")}>
+        Back
+      </button>
+
+      <small>SEND RIALO</small>
+      <h2>Send RIALO</h2>
+      <p>Transfer RIALO to another Rialo address.</p>
+
+      <label>Recipient address</label>
+      <input
+        value={to}
+        onChange={e=>setTo(e.target.value)}
+        placeholder="Rialo address…"
+      />
+
+      <label>Amount</label>
+      <div className="amount">
+        <input
+          type="number"
+          min="0"
+          step="0.000001"
+          value={amount}
+          onChange={e=>setAmount(e.target.value)}
+          placeholder="0.0"
+        />
+        <b>RIALO</b>
+        <button
+          type="button"
+          className="ghost max-button"
+          disabled={busy||!bal}
+          onClick={()=>{
+  const b=parseFloat(String(bal||"0").replace(/,/g,""));
+  const fee=0.000005;
+  setAmount(String(Math.max(0,b-fee)));
+}}
+        >
+          MAX
         </button>
       </div>
-      <div className="row">
-        <button disabled={busy} onClick={()=>refresh()}>Refresh</button>
-        <button className="ghost" disabled={busy} onClick={faucet}>Claim Faucet</button>
+
+      <small>Available: {bal||"0"} RIALO</small>
+
+      <button
+        style={{width:"100%",marginTop:"18px"}}
+        disabled={busy||!to||!amount}
+        onClick={askSend}
+      >
+        {busy?"Processing…":"Send RIALO"}
+      </button>
+
+      {xferStatus&&<div className="status">{xferStatus}</div>}
+    </section>
+   }
+
+   {view==="receive"&&
+    <section className="card page-card">
+      <button className="ghost back-button" onClick={()=>setView("home")}>
+        Back
+      </button>
+
+      <small>RECEIVE RIALO</small>
+      <h2>Receive RIALO</h2>
+      <p>Share this address to receive RIALO.</p>
+
+      <div className="receive-address">
+        <code>{addr}</code>
+        <button onClick={copyAddress}>
+          COPY ADDRESS
+        </button>
+      </div>
+
+      <div className="receive-placeholder">
+        <div>◎</div>
+        <small>QR CODE</small>
+      </div>
+    </section>
+   }
+
+   {view==="test"&&
+    <section className="card page-card">
+      <button className="ghost back-button" onClick={()=>setView("home")}>
+        Back
+      </button>
+
+      <small>TEST TOKEN</small>
+      <h2>TEST</h2>
+
+      <div className="asset-big-balance">
+        {testBal||"0"} <em>TEST</em>
+      </div>
+
+      <small>Test Token</small>
+
+      <div className="wallet-actions" style={{marginTop:"22px"}}>
+        <button
+          disabled={busy}
+          onClick={()=>{
+            setXferToken("TEST");
+            setView("test");
+            setSendOpen(true);
+          }}
+        >
+          SEND
+        </button>
+
+        <button
+          className="ghost"
+          disabled={busy||!addr}
+          onClick={()=>setView("receive")}
+        >
+          RECEIVE
+        </button>
+      </div>
+
+      {sendOpen&&
+        <div style={{marginTop:"24px"}}>
+          <label>Recipient address</label>
+          <input
+            value={to}
+            onChange={e=>setTo(e.target.value)}
+            placeholder="Rialo address…"
+          />
+
+          <label>Amount</label>
+          <div className="amount">
+            <input
+              type="number"
+              min="0"
+              step="0.000001"
+              value={amount}
+              onChange={e=>setAmount(e.target.value)}
+              placeholder="0.0"
+            />
+            <b>TEST</b>
+            <button
+              type="button"
+              className="ghost max-button"
+              disabled={busy||!testBal}
+              onClick={()=>setAmount(testBal||"0")}
+            >
+              MAX
+            </button>
+          </div>
+
+          <small>Available: {testBal||"0"} TEST</small>
+
+          <button
+            style={{width:"100%",marginTop:"18px"}}
+            disabled={busy||!to||!amount}
+            onClick={askSend}
+          >
+            {busy?"Processing…":"Send TEST"}
+          </button>
+
+          {xferStatus&&<div className="status">{xferStatus}</div>}
+        </div>
+      }
+    </section>
+   }
+
+   {view==="swap"&&
+    <section className="card page-card">
+      <button className="ghost back-button" onClick={()=>setView("home")}>
+        Back
+      </button>
+
+      <small>SWAP</small>
+      <h2>Swap tokens</h2>
+      <p>Exchange RIALO and TEST.</p>
+
+      {(()=>{
+        const t2r=swapDir==="test2rialo";
+        const tk=t2r?"TEST":"RIALO";
+        const tk2=t2r?"RIALO":"TEST";
+        const n=parseFloat(swapAmt);
+        const have=parseFloat(
+          (t2r?(testBal||"0"):(bal||"0")).replace(/,/g,"")
+        );
+        const get=n>0?+(n*(t2r?0.1:10)).toFixed(6):0;
+        const poolIn=t2r?(liq?.test??Infinity):(liq?.rialo??Infinity);
+        const poolOut=t2r?(liq?.rialo??Infinity):(liq?.test??Infinity);
+        const noLiq=!!liq&&n>0&&(n>poolIn||get>poolOut);
+        const label=!liq
+          ?"Loading liquidity…"
+          :!(n>0)
+          ?"Enter an amount"
+          :n>have
+          ?"Insufficient "+tk
+          :noLiq
+          ?"Insufficient liquidity"
+          :busy
+          ?"Processing…"
+          :"Swap";
+        const off=busy||!liq||!(n>0)||n>have||noLiq;
+
+        return <>
+          <div className="swap-box">
+            <div className="swap-box-top">
+              <small>You pay</small>
+              <small>Balance: {have}</small>
+            </div>
+
+            <div className="swap-input-row">
+              <input
+                value={swapAmt}
+                onChange={e=>setSwapAmt(e.target.value)}
+                inputMode="decimal"
+                placeholder="0"
+              />
+              <strong>{tk}</strong>
+            </div>
+
+            <div className="swap-percent">
+              {[25,50,75,100].map(p=>
+                <button
+                  key={p}
+                  type="button"
+                  className="ghost"
+                  disabled={busy}
+                  onClick={()=>swapPct(p)}
+                >
+                  {p===100?"MAX":p+"%"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="swap-switch">
+            <button
+              type="button"
+              className="ghost"
+              disabled={busy}
+              onClick={()=>{
+                setSwapDir(t2r?"rialo2test":"test2rialo");
+                setSwapAmt("");
+              }}
+            >
+              ⇅
+            </button>
+          </div>
+
+          <div className="swap-box">
+            <small>You receive</small>
+            <div className="swap-input-row">
+              <span>{get||"0"}</span>
+              <strong>{tk2}</strong>
+            </div>
+          </div>
+
+          <div className="swap-info">
+            <div><small>Rate</small><span>{t2r?"1 TEST = 0.1 RIALO":"1 RIALO = 10 TEST"}</span></div>
+            <div><small>Slippage</small><span>0%</span></div>
+            <div><small>Network fee</small><span>~0.000005 RIALO</span></div>
+            <div>
+              <small>Pool liquidity</small>
+              <span>
+                {liq
+                  ? `${Number(liq.test).toLocaleString(undefined,{maximumFractionDigits:6})} TEST / ${Number(liq.rialo).toLocaleString(undefined,{maximumFractionDigits:6})} RIALO`
+                  : "Loading…"}
+              </span>
+            </div>
+          </div>
+
+          <button
+            style={{width:"100%",marginTop:"16px"}}
+            disabled={off}
+            onClick={askSwap}
+          >
+            {label}
+          </button>
+
+          {swapStatus&&<div className="status">{swapStatus}</div>}
+        </>
+      })()}
+    </section>
+   }
+
+   <div className="status">{status}</div>
+
+   <button
+     className="danger"
+     disabled={busy||!activeWallet}
+     onClick={deleteActiveWallet}
+   >
+     Delete Wallet
+   </button>
+   </>}
+  {confirmBox&&
+    <div className="confirm-overlay">
+      <div className="confirm-modal">
+
+        <div className="confirm-kicker">CONFIRM</div>
+        <h2>{confirmBox.title}</h2>
+
+        <div className="confirm-rows">
+          {confirmBox.rows?.map((r:any,i:number)=>
+            <div className="confirm-row" key={i}>
+              <small>{r[0]}</small>
+              <span>{r[1]}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="confirm-actions">
+          <button
+            type="button"
+            className="ghost"
+            disabled={busy}
+            onClick={()=>setConfirmBox(null)}
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async()=>{
+              const run=confirmBox.run;
+              setConfirmBox(null);
+              await run();
+            }}
+          >
+            {busy?"Processing…":"Confirm"}
+          </button>
+        </div>
+
       </div>
     </div>
-   </section>
+  }
 
-   {confirmBox&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50,padding:"20px"}}>
-<div className="card" style={{width:"100%",maxWidth:"420px",background:"#fafaf8"}}>
-<h2 style={{marginTop:0}}>{confirmBox.title}</h2>
-{confirmBox.rows.map((r:any,i:number)=><div key={i} className="row" style={{justifyContent:"space-between",margin:"10px 0",gap:"12px"}}><small>{r[0]}</small><strong style={{wordBreak:"break-all",textAlign:"right"}}>{r[1]}</strong></div>)}
-<div className="row" style={{marginTop:"16px",justifyContent:"flex-end"}}>
-<button type="button" className="ghost" onClick={()=>setConfirmBox(null)}>Cancel</button>
-<button type="button" onClick={()=>{const r=confirmBox.run;setConfirmBox(null);r()}}>Confirm</button>
-</div>
-</div>
-</div>}
-{network!=="devnet"&&<section className="card swap" style={{marginTop:"14px"}}>
-<div onClick={()=>{setSwapOpen(!swapOpen);loadLiq()}} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-<div><small><Ic d="M7 10h13m0 0l-4-4m4 4l-4 4M17 14H4m0 0l4 4m-4-4l4-4"/>SWAP</small></div>
-<span style={{fontSize:"22px"}}>{swapOpen?"▴":"▾"}</span>
-</div>
-{swapOpen&&(()=>{
-const t2r=swapDir==="test2rialo",tk=t2r?"TEST":"RIALO",tk2=t2r?"RIALO":"TEST";
-const n=parseFloat(swapAmt),have=parseFloat((t2r?(testBal||"0"):(bal||"0")).replace(/,/g,""));
-const get=n>0?+(n*(t2r?0.1:10)).toFixed(6):0;
-const noLiq=!!liq&&n>0&&get>(t2r?liq.rialo-0.01:liq.test);
-const label=!(n>0)?"Enter an amount":n>have?"Insufficient "+tk:noLiq?"Insufficient liquidity":busy?"Processing…":"Swap";
-const off=busy||!(n>0)||n>have||noLiq;
-const row=(a:string,b:string)=><div style={{display:"flex",justifyContent:"space-between",margin:"8px 0",gap:"12px"}}><small>{a}</small><small style={{color:"#111",textAlign:"right"}}>{b}</small></div>;
-return <div style={{marginTop:"12px"}}>
-<div className="card" style={{padding:"14px"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><small>From</small><small>Balance: {have}</small></div>
-<div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:"8px"}}>
-<input value={swapAmt} onChange={e=>setSwapAmt(e.target.value)} inputMode="decimal" placeholder="0" style={{flex:1,minWidth:0,fontSize:"32px",fontWeight:700,border:"none",background:"transparent",outline:"none"}}/>
-<strong style={{fontSize:"18px"}}>{tk}</strong>
-</div>
-<div style={{display:"flex",gap:"8px",marginTop:"12px"}}>
-{[25,50,75,100].map(p=><button key={p} type="button" className="ghost" disabled={busy} style={{flex:1,padding:"8px 0",fontSize:"14px"}} onClick={()=>swapPct(p)}>{p===100?"Max":p+"%"}</button>)}
-</div>
-</div>
-<div style={{display:"flex",justifyContent:"center",margin:"-12px 0",position:"relative",zIndex:1}}><button type="button" className="ghost" disabled={busy} style={{borderRadius:"50%",width:"44px",height:"44px",padding:0,background:"#fafaf8"}} onClick={()=>{setSwapDir(t2r?"rialo2test":"test2rialo");setSwapAmt("")}}>⇅</button></div>
-<div className="card" style={{padding:"14px"}}>
-<small>To (estimated)</small>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:"8px"}}><span style={{fontSize:"32px",fontWeight:700}}>{get||"0"}</span><strong style={{fontSize:"18px"}}>{tk2}</strong></div>
-</div>
-<div style={{marginTop:"14px"}}>
-{row("Rate",t2r?"1 TEST = 0.1 RIALO":"1 RIALO = 10 TEST")}
-{row("Min. received",get+" "+tk2)}
-{row("Slippage","0% (fixed rate)")}
-{row("Price impact","0%")}
-{row("Network fee","~0.000005 RIALO")}
-{row("Pool liquidity",liq?liq.test.toLocaleString("en-US")+" TEST / "+liq.rialo.toFixed(2)+" RIALO":"—")}
-</div>
-<button style={{width:"100%",marginTop:"10px"}} disabled={off} onClick={askSwap}>{label}</button>{swapStatus&&<div className="status">{swapStatus}</div>}
-</div>})()}
-</section>}
-
-   <section className="card send" style={{marginTop:"14px"}}>
-    <div onClick={()=>setSendOpen(!sendOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-<div><small><Ic d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>TRANSFER</small></div>
-<span style={{fontSize:"22px"}}>{sendOpen?"▴":"▾"}</span>
-</div>
-{sendOpen&&<div>
-
-    <label>Token</label>
-<select value={xferToken} disabled={busy} style={{border:"none",background:"transparent",boxShadow:"none",outline:"none",width:"auto",padding:0}} onChange={e=>setXferToken(e.target.value as any)}><option value="RIALO">RIALO</option>{network!=="devnet"&&<option value="TEST">TEST</option>}</select>
-<label>Recipient address</label>
-    <input
-      value={to}
-      onChange={e=>setTo(e.target.value)}
-      placeholder="Rialo address…"
-    />
-
-    <label>Amount</label>
-    <div className="amount">
-      <input
-        type="number"
-        min="0"
-        step="0.000001"
-        value={amount}
-        onChange={e=>setAmount(e.target.value)}
-        placeholder="0.0"
-      />
-      <b>{xferToken}</b>
-    </div>
-
-    <button
-      disabled={busy||!to||!amount}
-      onClick={askSend}
-    >
-      {busy?"Processing…":"Transfer"}
-    </button>{xferStatus&&<div className="status">{xferStatus}</div>}
-    </div>}
-   </section>
-
-<section className="card" style={{marginTop:"14px"}}>
-    <div onClick={()=>{const o=!histOpen;setHistOpen(o);if(o)loadHistory()}} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-     <small><Ic d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>HISTORY</small>
-     <span style={{fontSize:"22px"}}>{histOpen?"▴":"▾"}</span>
-    </div>
-    {histOpen&&<div style={{marginTop:"10px"}}>
-     {histLoading&&<small>Loading…</small>}
-     {!histLoading&&histItems.length===0&&<small>No transactions yet.</small>}
-     {histItems.map((h:any,i:number)=>
-      <div key={i} className="row" style={{justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #eee"}}>
-       <div>
-        <div style={{fontWeight:600}}>{h.kind}{!h.ok&&<span style={{color:"#c0392b"}}> · Failed</span>}</div>
-        <small>{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
-       </div>
-       <button type="button" className="ghost" onClick={()=>navigator.clipboard?.writeText(h.sig)}>{h.sig.slice(0,6)}…{h.sig.slice(-6)}</button>
-      </div>)}
-    </div>}
-   </section>
-
-   <div className="status">{status}</div><button className="danger" disabled={busy||!activeWallet} onClick={deleteActiveWallet}>Delete Wallet</button>
-  </>}
   <footer>Rialo Testnet ·</footer>
  </main>
 }
