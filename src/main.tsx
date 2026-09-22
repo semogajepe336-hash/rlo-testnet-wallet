@@ -1199,8 +1199,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
         Back
       </button>
 
-      <small>TEST TOKEN</small>
-      <h2>TEST</h2>
+      <h2 style={{marginTop:"12px"}}>TEST</h2>
 
       <div className="asset-big-balance">
         {testBal||"0"} <em>TEST</em>
