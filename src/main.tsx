@@ -570,6 +570,9 @@ function copyKey(){
       await new Promise(r=>setTimeout(r,2000));
       await refresh(publicKey);
     }
+    await refresh(publicKey);
+    await loadTest(publicKey);
+    await loadHistory(publicKey);
     setStatus("");
   }catch(e:any){
     console.error("Faucet error:",e);
