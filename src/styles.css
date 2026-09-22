@@ -95,7 +95,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
 .card.center .password-box button{margin:0}
 .logo{font-size:0;color:transparent;display:block;width:48px;height:48px;padding:0;border:0;border-radius:0;box-shadow:none;background:url("/rialo-logo.svg") center/contain no-repeat;margin:0 auto 12px}
 
-/* ===== RIALO WALLET UI REFRESH ===== */
 
 .hero {
   padding: 42px 0 28px;
@@ -115,7 +114,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   line-height: 1.7;
 }
 
-/* wallet selector */
 .wallet-manager {
   padding: 16px 18px;
 }
@@ -134,7 +132,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   border-radius: 12px;
 }
 
-/* main balance */
 .balance {
   font-size: clamp(42px, 9vw, 72px) !important;
   line-height: 1;
@@ -148,7 +145,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   letter-spacing: -0.02em;
 }
 
-/* action buttons */
 .wallet-actions {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -165,7 +161,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   letter-spacing: .02em;
 }
 
-/* assets */
 .assets-section {
   margin-top: 16px;
 }
@@ -202,12 +197,10 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   text-align: right;
 }
 
-/* hide old balance separation */
 .balance + .balance {
   border-top: 0 !important;
 }
 
-/* mobile */
 @media (max-width: 600px) {
   .hero {
     padding: 28px 0 20px;
@@ -231,10 +224,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
 }
 
 
-/* =========================================================
-   RIALO WALLET — PREMIUM UI
-   ========================================================= */
-
 :root {
   --rv-bg: #f6f7f3;
   --rv-card: #ffffff;
@@ -245,7 +234,6 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   --rv-dark: #11120f;
 }
 
-/* page atmosphere */
 body {
   background:
     radial-gradient(circle at 88% 8%, rgba(0,0,0,0), transparent 28%),
@@ -253,12 +241,10 @@ body {
     var(--rv-bg) !important;
 }
 
-/* main content */
 main {
   position: relative;
 }
 
-/* subtle top glow */
 main::before {
   content: "";
   position: absolute;
@@ -272,7 +258,6 @@ main::before {
   pointer-events: none;
 }
 
-/* header */
 header {
   position: sticky;
   top: 12px;
@@ -291,7 +276,6 @@ header b {
   font-size: 15px;
 }
 
-/* hero */
 .hero {
   position: relative;
   padding: 72px 4px 42px !important;
@@ -332,7 +316,6 @@ header b {
   font-size: 15px !important;
 }
 
-/* cards */
 .card {
   border: 1px solid rgba(20,20,20,.07) !important;
   box-shadow:
@@ -348,7 +331,6 @@ header b {
   border-color: rgba(20,20,20,.12) !important;
 }
 
-/* wallet picker */
 .wallet-manager {
   position: relative;
   overflow: hidden;
@@ -386,7 +368,6 @@ header b {
   color: var(--rv-muted);
 }
 
-/* add wallet */
 .add-wallet-button {
   width: 40px !important;
   height: 40px;
@@ -399,7 +380,6 @@ header b {
   font-weight: 400 !important;
 }
 
-/* balance */
 .balance-card {
   position: relative;
   overflow: hidden;
@@ -446,7 +426,6 @@ header b {
   font-weight: 650;
 }
 
-/* address */
 .address-row {
   border: 1px solid var(--rv-line);
   background: #fafbf8;
@@ -460,7 +439,6 @@ header b {
   font-size: 10px;
 }
 
-/* action bar */
 .wallet-actions {
   gap: 7px !important;
   margin-top: 13px !important;
@@ -488,7 +466,6 @@ header b {
   transform: translateY(-1px);
 }
 
-/* assets */
 .assets-section {
   margin-top: 26px !important;
 }
@@ -527,7 +504,6 @@ header b {
   letter-spacing: -.02em;
 }
 
-/* secondary accordions */
 .card.swap,
 .card.transfer,
 .card.history {
@@ -541,14 +517,12 @@ header b {
   min-height: 52px;
 }
 
-/* status */
 .status {
   color: #747870;
   font-size: 10px;
   letter-spacing: .01em;
 }
 
-/* delete */
 button[class*="delete"],
 button.ghost {
   transition: all .18s ease;
@@ -558,7 +532,6 @@ button.ghost:hover {
   background: #f0f1eb;
 }
 
-/* mobile */
 @media (max-width: 600px) {
   header {
     top: 8px;
@@ -591,10 +564,6 @@ button.ghost:hover {
 }
 
 
-/* =========================================================
-   RIALO WALLET — PREMIUM FEATURE PAGES
-   ========================================================= */
-
 .page-card {
   max-width: 680px;
   margin: 18px auto 0;
@@ -614,7 +583,6 @@ button.ghost:hover {
   line-height: 1.6;
 }
 
-/* Back button */
 .page-card .back-button {
   display: inline-flex !important;
   width: auto !important;
@@ -645,7 +613,6 @@ button.ghost:hover {
   transform: translateY(0);
 }
 
-/* Page headings */
 .page-card > small:first-of-type {
   display: block;
   color: #858585;
@@ -660,10 +627,6 @@ button.ghost:hover {
   line-height: 1;
   letter-spacing: -.045em;
 }
-
-/* =========================================================
-   SWAP
-   ========================================================= */
 
 .swap-box {
   position: relative;
@@ -807,7 +770,6 @@ button.ghost:hover {
   text-align: right;
 }
 
-/* Swap CTA */
 .page-card .swap-box + .swap-switch + .swap-box + .swap-info + button {
   height: 56px !important;
   border-radius: 17px !important;
@@ -816,7 +778,6 @@ button.ghost:hover {
   letter-spacing: .04em;
 }
 
-/* TEST asset page */
 .asset-big-balance {
   margin-top: 28px;
   font-size: clamp(32px, 8vw, 48px);
@@ -833,7 +794,6 @@ button.ghost:hover {
   color: #888;
 }
 
-/* Receive */
 .receive-address {
   padding: 18px;
   border: 1px solid rgba(20,20,20,.09);
@@ -881,7 +841,6 @@ button.ghost:hover {
   letter-spacing: .14em;
 }
 
-/* Send amount */
 .page-card .amount {
   display: flex;
   align-items: center;
@@ -904,7 +863,6 @@ button.ghost:hover {
   font-weight: 750 !important;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
   .page-card {
     margin-top: 12px;
@@ -944,18 +902,12 @@ button.ghost:hover {
 }
 
 
-/* =========================================================
-   SWAP PAGE — COMPACT RIALO STYLE
-   Keep dedicated Swap page, change visual only
-   ========================================================= */
-
 .page-card:has(.swap-box) {
   max-width: 680px;
   padding: 24px;
   border-radius: 24px;
 }
 
-/* Back */
 .page-card:has(.swap-box) .back-button {
   margin-bottom: 24px !important;
   height: 40px !important;
@@ -965,7 +917,6 @@ button.ghost:hover {
   box-shadow: none !important;
 }
 
-/* Swap title */
 .page-card:has(.swap-box) > small:first-of-type {
   font-size: 10px;
   letter-spacing: .18em;
@@ -985,7 +936,6 @@ button.ghost:hover {
   color: #777;
 }
 
-/* From / To cards */
 .page-card:has(.swap-box) .swap-box {
   padding: 15px;
   border-radius: 17px;
@@ -1006,7 +956,6 @@ button.ghost:hover {
   color: #888;
 }
 
-/* Amount */
 .page-card:has(.swap-box) .swap-input-row {
   min-height: 42px;
   gap: 10px;
@@ -1026,7 +975,6 @@ button.ghost:hover {
   font-size: 10px;
 }
 
-/* Percentage buttons */
 .page-card:has(.swap-box) .swap-percent {
   margin-top: 7px;
   gap: 4px;
@@ -1039,7 +987,6 @@ button.ghost:hover {
   padding: 0 5px !important;
 }
 
-/* Middle switch */
 .page-card:has(.swap-box) .swap-switch {
   height: 0;
 }
@@ -1055,7 +1002,6 @@ button.ghost:hover {
   font-size: 15px !important;
 }
 
-/* Swap info */
 .page-card:has(.swap-box) .swap-info {
   margin-top: 9px;
   padding: 3px 0 0;
@@ -1075,7 +1021,6 @@ button.ghost:hover {
   font-weight: 500;
 }
 
-/* Main Swap button */
 .page-card:has(.swap-box) .swap-box + .swap-switch + .swap-box + .swap-info + button {
   height: 42px !important;
   margin-top: 9px !important;
@@ -1085,7 +1030,6 @@ button.ghost:hover {
   letter-spacing: 0 !important;
 }
 
-/* Mobile */
 @media (max-width: 600px) {
 
   .page-card:has(.swap-box) {
@@ -1113,7 +1057,6 @@ button.ghost:hover {
 }
 
 
-/* Clean token labels inside Swap */
 .page-card:has(.swap-box) .swap-input-row strong {
   height: auto;
   padding: 0;
@@ -1125,10 +1068,6 @@ button.ghost:hover {
   letter-spacing: .02em;
 }
 
-
-/* =========================================================
-   CONFIRM MODAL
-   ========================================================= */
 
 .confirm-overlay {
   position: fixed;
@@ -1279,7 +1218,6 @@ button.ghost:hover {
 }
 
 
-/* TEST token: plain text */
 .asset-symbol,
 .token-symbol,
 .asset-badge,
@@ -1328,7 +1266,6 @@ button.ghost:hover {
 }
 
 
-/* Compact wallet typography */
 .wallet-manager h2 {
   font-size: 18px !important;
 }
@@ -1380,7 +1317,6 @@ button.ghost:hover {
 }
 
 
-/* Clean address / copy button */
 .balance-card .address-row {
   border: none !important;
   background: transparent !important;
@@ -1400,7 +1336,6 @@ button.ghost:hover {
   box-shadow: none !important;
 }
 
-/* Wallet action: icon box + label below */
 .balance-card .wallet-actions {
   align-items: start;
   gap: 14px;
@@ -1442,7 +1377,6 @@ button.ghost:hover {
 }
 
 
-/* Remove boxed wallet actions */
 .balance-card .wallet-actions button {
   display: flex;
   flex-direction: column;
@@ -1471,7 +1405,6 @@ button.ghost:hover {
 }
 
 
-/* Completely plain top header */
 header,
 .topbar,
 .navbar,
@@ -1486,12 +1419,10 @@ header,
   outline: 0 !important;
 }
 
-/* prevent 100vw scrollbar overflow */
 html, body {
   overflow-x: hidden;
 }
 
-/* Modern compact wallet action buttons */
 .wallet-actions-modern {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1566,7 +1497,6 @@ html, body {
 }
 
 
-/* FIX: force modern wallet action button UI */
 .wallet-actions.wallet-actions-modern {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -1629,7 +1559,6 @@ html, body {
   }
 }
 
-/* Remove outer boxes from wallet action buttons */
 .wallet-actions.wallet-actions-modern > button {
   background: transparent !important;
   border: none !important;
@@ -1656,7 +1585,6 @@ html, body {
   margin-top: 2px !important;
 }
 
-/* Floating swap direction button */
 .swap-switch {
   position: relative !important;
   height: 0 !important;
@@ -1698,7 +1626,6 @@ html, body {
   z-index: 1 !important;
 }
 
-/* Add breathing room between swap boxes */
 .swap-switch {
   height: 24px !important;
 }
@@ -1716,7 +1643,6 @@ html, body {
   margin-top: 0 !important;
 }
 
-/* small gap around swap switch */
 .swap-switch {
   margin: 8px 0 !important;
   height: 28px !important;
@@ -1730,19 +1656,16 @@ html, body {
   transform: translate(-50%, -50%) !important;
 }
 
-/* small spacing below SWAP label */
 .swap-card > small:first-child {
   display: block;
   margin-bottom: 14px !important;
 }
 
-/* spacing for SWAP page title */
 .page-card > small:first-of-type {
   display: block !important;
   margin-bottom: 16px !important;
 }
 
-/* FORCE FAUCET BUTTON VISIBLE */
 .balance-card .wallet-actions button:nth-child(3) {
   display: flex !important;
   visibility: visible !important;
