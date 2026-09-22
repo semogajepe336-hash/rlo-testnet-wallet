@@ -1741,3 +1741,26 @@ html, body {
   display: block !important;
   margin-bottom: 16px !important;
 }
+
+/* FORCE FAUCET BUTTON VISIBLE */
+.balance-card .wallet-actions button:nth-child(3) {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #171717 !important;
+}
+
+.balance-card .wallet-actions button:nth-child(3) .action-icon {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #fff !important;
+  background: #171717 !important;
+}
+
+.balance-card .wallet-actions button:nth-child(3) small {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: #171717 !important;
+}
