@@ -942,8 +942,8 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
    <section className="grid">
     <div className="card">
       <small><Ic d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3M3 7v11a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4M3 7l3-3h9"/>BALANCE</small>
-      <div className="balance">{bal}<em> Rialo</em></div>
-      {network!=="devnet"&&testBal!==null&&<div className="balance">{testBal}<em> TEST</em></div>}
+      <div className="balance" style={{marginTop:"14px",paddingTop:"14px",borderTop:"1px solid #ececE6"}}>{bal}<em> Rialo</em></div>
+      {network!=="devnet"&&testBal!==null&&<div className="balance" style={{marginTop:"14px",paddingTop:"14px",borderTop:"1px solid #ececE6",paddingBottom:"14px",borderBottom:"1px solid #ececE6"}}>{testBal}<em> TEST</em></div>}
       <div className="address-row">
         <code>{short(addr)}</code>
         <button
