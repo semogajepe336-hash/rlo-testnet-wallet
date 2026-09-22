@@ -65,7 +65,7 @@ input{width:100%;height:46px;border:1px solid #e1e1db;border-radius:12px;backgro
 .amount b{padding-right:14px;color:#8a8a84;font-size:12px}
 .send > button{width:100%;margin-top:18px}
 .status{min-height:20px;margin:18px 0 10px;color:#71716a;font-size:12px}
-.wallet-menu{position:fixed;top:80px;right:16px;width:360px;max-width:calc(100vw - 32px);z-index:50;margin:0;box-shadow:0 18px 45px rgba(0,0,0,.1)}
+.wallet-menu{position:absolute;top:76px;right:0;width:360px;max-width:calc(100vw - 32px);z-index:50;margin:0;box-shadow:0 18px 45px rgba(0,0,0,.1)}
 .wallet-menu-header{display:flex;align-items:center;justify-content:space-between}
 .menu-close{width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;border-radius:10px}
 .wallet-menu h2{margin:7px 0;font-size:18px;font-weight:600}
@@ -79,7 +79,7 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
   .hero{padding:52px 0 38px}
   .hero h1{font-size:42px}
   .card{padding:18px}
-  .wallet-menu{top:70px;right:12px;width:calc(100vw - 24px)}
+  .wallet-menu{top:64px;right:0;width:calc(100vw - 24px)}
   .balance{font-size:26px}
   .row{flex-wrap:wrap}
 }
@@ -248,8 +248,8 @@ footer{margin-top:42px;padding-top:18px;border-top:1px solid #e4e4de;color:#8a8a
 /* page atmosphere */
 body {
   background:
-    radial-gradient(circle at 88% 8%, rgba(0,0,0,0), transparent 28%),
-    radial-gradient(circle at 8% 35%, rgba(0,0,0,0), transparent 25%),
+    radial-gradient(circle at 88% 8%, rgba(154,104,72,.13), transparent 28%),
+    radial-gradient(circle at 8% 35%, rgba(154,104,72,.07), transparent 25%),
     var(--rv-bg) !important;
 }
 
@@ -267,7 +267,7 @@ main::before {
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  background: rgba(0,0,0,0);
+  background: rgba(154,104,72,.08);
   filter: blur(70px);
   pointer-events: none;
 }
@@ -314,7 +314,7 @@ header b {
   height: 7px;
   border-radius: 50%;
   background: var(--rv-accent);
-  box-shadow: 0 0 14px rgba(0,0,0,0);
+  box-shadow: 0 0 14px rgba(154,104,72,.35);
 }
 
 .hero h1 {
@@ -364,7 +364,7 @@ header b {
   right: -55px;
   top: -55px;
   border-radius: 50%;
-  background: rgba(0,0,0,0);
+  background: rgba(154,104,72,.14);
   filter: blur(18px);
   pointer-events: none;
 }
@@ -415,7 +415,7 @@ header b {
   right: -85px;
   top: -90px;
   border-radius: 50%;
-  background: rgba(0,0,0,0);
+  background: rgba(154,104,72,.11);
   filter: blur(25px);
   pointer-events: none;
 }
@@ -1398,95 +1398,4 @@ button.ghost:hover {
 .balance-card .copy-address:hover {
   background: transparent !important;
   box-shadow: none !important;
-}
-
-/* Wallet action: icon box + label below */
-.balance-card .wallet-actions {
-  align-items: start;
-  gap: 14px;
-}
-
-.balance-card .wallet-actions button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 7px;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-.balance-card .wallet-actions .action-icon {
-  width: 46px;
-  height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e5e5e0;
-  border-radius: 12px;
-  background: #fff;
-  font-size: 18px;
-  line-height: 1;
-}
-
-.balance-card .wallet-actions button:hover .action-icon {
-  border-color: #d5d5d0;
-  background: #fafafa;
-}
-
-.balance-card .wallet-actions small {
-  font-size: 9px !important;
-  letter-spacing: .07em;
-  color: #171717;
-}
-
-
-/* Remove boxed wallet actions */
-.balance-card .wallet-actions button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-.balance-card .wallet-actions .action-icon {
-  width: auto !important;
-  height: auto !important;
-  border: none !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  font-size: 20px;
-}
-
-.balance-card .wallet-actions button:hover .action-icon {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-
-/* Completely plain top header */
-header,
-.topbar,
-.navbar,
-.app-header,
-.header,
-.header-inner {
-  background: transparent !important;
-  background-image: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-  outline: 0 !important;
-}
-
-/* prevent 100vw scrollbar overflow */
-html, body {
-  overflow-x: hidden;
 }

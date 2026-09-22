@@ -125,7 +125,7 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
- const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[copiedSig,setCopiedSig]=useState(""),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]),[swapStatus,setSwapStatus]=useState(""),[xferStatus,setXferStatus]=useState("");
+ const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]),[swapStatus,setSwapStatus]=useState(""),[xferStatus,setXferStatus]=useState("");
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -253,7 +253,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix).addInstruction(mkAta).addInstruction(ix).build();
  setSwapStatus("Signing and submitting swap…");
  const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
- if(res.executed===true&&!res.err){setSwapStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq();await loadHistory()}else{setSwapStatus("Swap failed on-chain.")}
+ if(res.executed===true&&!res.err){setSwapStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq()}else{setSwapStatus("Swap failed on-chain.")}
  }catch(e:any){setSwapStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
  }
  function swapPct(p:number){
@@ -285,24 +285,6 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
  setConfirmBox({title:"Confirm Transfer",rows:[["To",d.toString()],["Amount",n+" "+xferToken],["Network fee","~0.000005 RIALO"]],run:send});
  }catch(e:any){setXferStatus("Send failed: "+(e?.message||e))}
- }
- function copySig(sig:string){
-  const done=()=>{setCopiedSig(sig);setTimeout(()=>setCopiedSig(""),1200)};
-  if(navigator.clipboard?.writeText){
-   navigator.clipboard.writeText(sig).then(done).catch(()=>{
-    const ta=document.createElement("textarea");
-    ta.value=sig;ta.style.position="fixed";ta.style.opacity="0";
-    document.body.appendChild(ta);ta.focus();ta.select();
-    try{document.execCommand("copy");done()}catch(e){}
-    document.body.removeChild(ta);
-   });
-  }else{
-   const ta=document.createElement("textarea");
-   ta.value=sig;ta.style.position="fixed";ta.style.opacity="0";
-   document.body.appendChild(ta);ta.focus();ta.select();
-   try{document.execCommand("copy");done()}catch(e){}
-   document.body.removeChild(ta);
-  }
  }
  async function loadHistory(pub=kp?.publicKey){
  if(!pub)return;
@@ -570,7 +552,6 @@ function copyKey(){
       await new Promise(r=>setTimeout(r,2000));
       await refresh(publicKey);
     }
-    setStatus("");
   }catch(e:any){
     console.error("Faucet error:",e);
     setStatus(`Faucet failed on ${network==="devnet"?"DevNet":"Testnet"}: ${e?.message||String(e)}`);
@@ -686,7 +667,7 @@ function copyAddress(){
   setStatus("Wallet address copied.");
 }
 
- return <>
+ return <main>
   <header>
   <b>RIALO Wallet</b>
   <div className="header-actions">
@@ -697,7 +678,6 @@ function copyAddress(){
         const next=e.target.value as "testnet"|"devnet";
         setNetwork(next);
         setBal(null);
-        if(next==="devnet" && view==="swap") setView("home");
         setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}.`);
       }}
       aria-label="Network"
@@ -715,8 +695,6 @@ function copyAddress(){
     </button>
   </div>
 </header>
-
-<main>
 
   {menuOpen&&(
     <section className="card wallet-menu">
@@ -806,7 +784,7 @@ function copyAddress(){
     </section>
   )}
 
-  <section className="hero"><small>RIALO TESTNET</small><h1>One Wallet.<br/>The Entire Rialo Ecosystem.</h1><p>Manage your assets, swap tokens, and explore Rialo on-chain.</p></section>
+  <section className="hero"><small>RIALO TESTNET</small><h1>A simple wallet for the Rialo testnet.</h1><p>Create, manage, and send Rialo on-chain.</p></section>
   {!vaultExists?<section className="card center"><div className="logo">◎</div><h2>Create Your Vault</h2><p>Your wallet data will be encrypted and stored securely on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Create vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><small>Use at least 8 characters with both letters and numbers.</small>{vaultPassword&&<div className="password-strength"><span>Password strength:</span><strong>{passwordStrength(vaultPassword)}</strong></div>}<button disabled={busy||!isValidVaultPassword(vaultPassword)} onClick={createVault}>{busy?"Creating...":"Create Vault"}</button></section>:
   !vaultUnlocked?<section className="card center"><div className="logo">◎</div><h2>Unlock Your Vault</h2><p>Your wallets are stored in an encrypted vault on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><button disabled={!vaultPassword} onClick={async()=>{try{const data=await vaultGet("wallets");const plain=await decryptVault(data,vaultPassword);const parsed=JSON.parse(plain);
 const list=parsed.wallets||[];
@@ -970,10 +948,9 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
     <section className="grid">
       <div className="card balance-card">
-
         <small>TOTAL BALANCE</small>
 
-        <div className="balance" style={{marginTop:"10px"}}>
+        <div className="balance" style={{marginTop:"18px"}}>
           {bal ?? "—"}<em> RIALO</em>
         </div>
 
@@ -993,44 +970,34 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           </button>
         </div>
 
-        <div className={`wallet-actions ${network==="devnet"?"wallet-actions-devnet":""}`}>
-          <button
-            disabled={busy}
-            onClick={()=>{setXferToken("RIALO");setView("send")}}
-          >
-            <span className="action-icon">↑</span>
-            <small>SEND</small>
+        <div className="wallet-actions">
+          <button disabled={busy} onClick={()=>{setXferToken("RIALO");setView("send")}}>
+            SEND
           </button>
 
-          <button
-            className="ghost"
-            disabled={busy||!addr}
-            onClick={()=>setView("receive")}
-          >
-            <span className="action-icon">↓</span>
-            <small>RECEIVE</small>
+          <button className="ghost" disabled={busy||!addr} onClick={()=>setView("receive")}>
+            RECEIVE
           </button>
 
-          <button
-            className="ghost"
-            disabled={busy}
-            onClick={faucet}
-          >
-            <span className="action-icon">+</span>
-            <small>FAUCET</small>
+          <button className="ghost" disabled={busy} onClick={faucet}>
+            FAUCET
           </button>
-
-          {network!=="devnet"&&
-          <button
-            className="ghost"
-            disabled={busy}
-            onClick={async()=>{setView("swap");await loadLiq()}}
-          >
-            <span className="action-icon">⇄</span>
-            <small>SWAP</small>
-          </button>
-          }
         </div>
+      </div>
+    </section>
+
+    <section
+      className="card"
+      style={{marginTop:"14px",cursor:"pointer"}}
+      onClick={()=>setView("swap")}
+    >
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <small>SWAP</small>
+          <h3 style={{margin:"5px 0 0"}}>Swap tokens</h3>
+          <small>Exchange RLO and TEST</small>
+        </div>
+        <span style={{fontSize:"25px"}}>›</span>
       </div>
     </section>
 
@@ -1039,7 +1006,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
       {network!=="devnet"&&testBal!==null&&
         <div
-          className="asset-item test-asset-item"
+          className="asset-item"
           style={{cursor:"pointer"}}
           onClick={()=>setView("test")}
         >
@@ -1102,9 +1069,9 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
               <button
                 type="button"
                 className="ghost"
-                onClick={(e)=>{e.stopPropagation();copySig(h.sig)}}
+                onClick={()=>navigator.clipboard?.writeText(h.sig)}
               >
-                {copiedSig===h.sig?"Copied!":h.sig.slice(0,6)+"…"+h.sig.slice(-6)}
+                {h.sig.slice(0,6)}…{h.sig.slice(-6)}
               </button>
             </div>
           )}
@@ -1145,11 +1112,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           type="button"
           className="ghost max-button"
           disabled={busy||!bal}
-          onClick={()=>{
-  const b=parseFloat(String(bal||"0").replace(/,/g,""));
-  const fee=0.000005;
-  setAmount(String(Math.max(0,b-fee)));
-}}
+          onClick={()=>setAmount(bal||"0")}
         >
           MAX
         </button>
@@ -1447,6 +1410,5 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
   <footer>Rialo Testnet ·</footer>
  </main>
-</>
 }
 createRoot(document.getElementById("root")!).render(<App/>);
