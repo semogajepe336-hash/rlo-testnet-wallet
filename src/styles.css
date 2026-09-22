@@ -1470,3 +1470,18 @@ button.ghost:hover {
   box-shadow: none !important;
 }
 
+
+/* Completely plain top header */
+header,
+.topbar,
+.navbar,
+.app-header,
+.header,
+.header-inner {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+}
