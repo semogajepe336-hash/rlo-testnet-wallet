@@ -1007,7 +1007,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
           <button
             disabled={busy||!addr}
-            onClick={()=>setView("receive")}
+            onClick={()=>{setXferToken("RIALO");setView("receive")}}
           >
             <span className="action-icon">↓</span>
             <small>RECEIVE</small>
@@ -1175,9 +1175,9 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
         Back
       </button>
 
-      <small>RECEIVE RIALO</small>
-      <h2>Receive RIALO</h2>
-      <p>Share this address to receive RIALO.</p>
+      <small>RECEIVE {xferToken}</small>
+      <h2>Receive {xferToken}</h2>
+      <p>Share this address to receive {xferToken}.</p>
 
       <div className="receive-address">
         <code>{addr}</code>
@@ -1223,7 +1223,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
         <button
           className="ghost"
           disabled={busy||!addr}
-          onClick={()=>setView("receive")}
+          onClick={()=>{setXferToken("TEST");setView("receive")}}
         >
           RECEIVE
         </button>
