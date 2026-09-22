@@ -993,7 +993,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           </button>
         </div>
 
-        <div className={`wallet-actions ${network==="devnet"?"wallet-actions-devnet":""}`}>
+        <div className={`wallet-actions wallet-actions-modern ${network==="devnet"?"wallet-actions-devnet":""}`}>
           <button
             disabled={busy}
             onClick={()=>{setXferToken("RIALO");setView("send")}}
@@ -1003,7 +1003,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           </button>
 
           <button
-            className="ghost"
             disabled={busy||!addr}
             onClick={()=>setView("receive")}
           >
@@ -1012,7 +1011,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           </button>
 
           <button
-            className="ghost"
             disabled={busy}
             onClick={faucet}
           >
@@ -1022,7 +1020,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
           {network!=="devnet"&&
           <button
-            className="ghost"
             disabled={busy}
             onClick={async()=>{setView("swap");await loadLiq()}}
           >
@@ -1282,8 +1279,8 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       </button>
 
       <small>SWAP</small>
-      <h2>Swap tokens</h2>
-      <p>Exchange RIALO and TEST.</p>
+      
+      
 
       {(()=>{
         const t2r=swapDir==="test2rialo";

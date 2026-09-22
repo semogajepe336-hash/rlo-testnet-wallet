@@ -1490,3 +1490,254 @@ header,
 html, body {
   overflow-x: hidden;
 }
+
+/* Modern compact wallet action buttons */
+.wallet-actions-modern {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.wallet-actions-modern button {
+  min-height: 68px;
+  padding: 10px 6px;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 16px;
+  background: #f7f7f7;
+  color: #171717;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+
+.wallet-actions-modern button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #eeeeee;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+
+.wallet-actions-modern button:active:not(:disabled) {
+  transform: scale(.97);
+}
+
+.wallet-actions-modern button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.wallet-actions-modern .action-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: #171717;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.wallet-actions-modern button small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+@media (max-width: 480px) {
+  .wallet-actions-modern {
+    gap: 8px;
+  }
+
+  .wallet-actions-modern button {
+    min-height: 64px;
+    border-radius: 14px;
+  }
+
+  .wallet-actions-modern .action-icon {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+
+/* FIX: force modern wallet action button UI */
+.wallet-actions.wallet-actions-modern {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 16px !important;
+}
+
+.wallet-actions.wallet-actions-modern > button {
+  min-height: 68px !important;
+  padding: 10px 6px !important;
+  border: 1px solid rgba(0,0,0,.08) !important;
+  border-radius: 16px !important;
+  background: #f3f3f3 !important;
+  color: #171717 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+}
+
+.wallet-actions.wallet-actions-modern > button .action-icon {
+  display: flex !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 10px !important;
+  background: #171717 !important;
+  color: #fff !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.wallet-actions.wallet-actions-modern > button small {
+  display: block !important;
+  color: #171717 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+@media (max-width: 480px) {
+  .wallet-actions.wallet-actions-modern {
+    gap: 8px !important;
+  }
+
+  .wallet-actions.wallet-actions-modern > button {
+    min-height: 64px !important;
+    border-radius: 14px !important;
+  }
+
+  .wallet-actions.wallet-actions-modern > button .action-icon {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+/* Remove outer boxes from wallet action buttons */
+.wallet-actions.wallet-actions-modern > button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  min-height: 64px !important;
+  padding: 6px !important;
+}
+
+.wallet-actions.wallet-actions-modern > button:hover:not(:disabled) {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.wallet-actions.wallet-actions-modern > button .action-icon {
+  background: #171717 !important;
+  border-radius: 50% !important;
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.wallet-actions.wallet-actions-modern > button small {
+  margin-top: 2px !important;
+}
+
+/* Floating swap direction button */
+.swap-switch {
+  position: relative !important;
+  height: 0 !important;
+  z-index: 20 !important;
+}
+
+.swap-switch button {
+  position: absolute !important;
+  left: 50% !important;
+  top: -2px !important;
+  transform: translate(-50%, -50%) !important;
+
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  padding: 0 !important;
+
+  border-radius: 50% !important;
+  border: 1px solid rgba(0,0,0,.06) !important;
+  background: #fff !important;
+  color: #555 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  box-shadow: 0 5px 16px rgba(0,0,0,.10) !important;
+  font-size: 20px !important;
+}
+
+.swap-switch button:hover:not(:disabled) {
+  transform: translate(-50%, -50%) !important;
+  background: #fff !important;
+  box-shadow: 0 5px 16px rgba(0,0,0,.10) !important;
+}
+
+.swap-box {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Add breathing room between swap boxes */
+.swap-switch {
+  height: 24px !important;
+}
+
+.swap-switch button {
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.swap-switch button:hover:not(:disabled) {
+  transform: translate(-50%, -50%) !important;
+}
+
+.swap-box + .swap-switch + .swap-box {
+  margin-top: 0 !important;
+}
+
+/* small gap around swap switch */
+.swap-switch {
+  margin: 8px 0 !important;
+  height: 28px !important;
+}
+
+.swap-switch button {
+  transform: translate(-50%, -50%) !important;
+}
+
+.swap-switch button:hover:not(:disabled) {
+  transform: translate(-50%, -50%) !important;
+}
+
+/* small spacing below SWAP label */
+.swap-card > small:first-child {
+  display: block;
+  margin-bottom: 14px !important;
+}
+
+/* spacing for SWAP page title */
+.page-card > small:first-of-type {
+  display: block !important;
+  margin-bottom: 16px !important;
+}
