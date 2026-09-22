@@ -1,19 +1,7 @@
 import React,{useEffect,useMemo,useState}from"react";
 import{createRoot}from"react-dom/client";
-import{Keypair,Mnemonic,PublicKey,TransactionBuilder,transferInstruction,createRialoClient,getDefaultRialoClientConfig,KELVIN_PER_RLO,SYSTEM_PROGRAM_ID}from"@rialo/ts-cdk";
+import{Keypair,Mnemonic,PublicKey,TransactionBuilder,transferInstruction,createRialoClient,getDefaultRialoClientConfig,KELVIN_PER_RLO}from"@rialo/ts-cdk";
 import"./styles.css";
-function Ic({d}:{d:string}){return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:"6px",verticalAlign:"-2px"}}><path d={d}/></svg>}
-const TK22=PublicKey.fromString("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
-const TMINT=PublicKey.fromString("BV7xahNAH9vnwE3bNzNf1iHpuokk8cdj8iMoka7DnM1M");
-const ATAP=PublicKey.fromString("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-const ataOf=(o:any)=>PublicKey.findProgramAddress([o.toBytes(),TK22.toBytes(),TMINT.toBytes()],ATAP)[0];
-const testXfer=(from:any,dest:any,n:number):any[]=>{
- const A=(k:any,w:boolean,s=false)=>({pubkey:k,isSigner:s,isWritable:w});
- const sys:any=typeof SYSTEM_PROGRAM_ID==="string"?PublicKey.fromString(SYSTEM_PROGRAM_ID):SYSTEM_PROGRAM_ID;
- const d=new Uint8Array(10);d[0]=12;new DataView(d.buffer).setBigUint64(1,BigInt(Math.round(n*1e6)),true);d[9]=6;
- return [{programId:ATAP,data:new Uint8Array([1]),accounts:[A(from,true,true),A(ataOf(dest),true),A(dest,false),A(TMINT,false),A(sys,false),A(TK22,false)]},
- {programId:TK22,data:d,accounts:[A(ataOf(from),true),A(TMINT,false),A(ataOf(dest),true),A(from,false,true)]}];
-};
 const hexToBytes=(h:string)=>{const c=h.trim().replace(/^0x/i,"");if(!/^[0-9a-fA-F]{64}$/.test(c))throw Error("Private key harus 64 karakter hex.");return Uint8Array.from(c.match(/.{2}/g)!.map(b=>parseInt(b,16)))};
 const bytesToHex=(b:Uint8Array)=>Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");
 async function walletToKeypair(w:any){return w.type==="privateKey"?Keypair.fromSecretKey(hexToBytes(w.secret)):Mnemonic.fromPhrase(w.phrase).toKeypair(0)}
@@ -125,7 +113,6 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
- const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]);
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -160,12 +147,12 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
     const b=await client.getBalance(kp.publicKey);
 
     if(!cancelled){
-     setBal((Number(b)/KELVIN_PER_RLO).toFixed(6));loadTest(kp.publicKey);
+     setBal((Number(b)/KELVIN_PER_RLO).toFixed(6));
      setStatus(`Balance loaded from ${network==="devnet"?"DevNet":"Testnet"}.`);
     }
    }catch(e:any){
     if(!cancelled){
-     setTestBal(null);setStatus(`Balance error: ${e?.message||e}`);
+     setStatus(`Balance error: ${e?.message||e}`);
     }
    }
   }
@@ -225,107 +212,6 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
  }
 
  async function refresh(pub=kp?.publicKey){if(!pub)return;try{const b=await client.getBalance(pub);setBal((Number(b)/KELVIN_PER_RLO).toFixed(6))}catch(e:any){setStatus("Balance error: "+(e?.message||e))}}
- async function doSwap(){
- if(!kp)return;
- const n=parseFloat(swapAmt);
- if(!(n>0)){setStatus("Enter a valid swap amount.");return}
- 
- setBusy(true);
- try{
- const P=(s:string)=>PublicKey.fromString(s);
- const SYS:any=typeof SYSTEM_PROGRAM_ID==="string"?P(SYSTEM_PROGRAM_ID):SYSTEM_PROGRAM_ID;
- const t2r=swapDir==="test2rialo";
- const data=new Uint8Array(9);
- data[0]=t2r?0:1;
- new DataView(data.buffer).setBigUint64(1,BigInt(Math.round(n*(t2r?1e6:1e9))),true);
- const A=(k:any,w:boolean,s=false)=>({pubkey:k,isSigner:s,isWritable:w});
- const ix:any={programId:P("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG"),data,accounts:[
- A(kp.publicKey,true,true),
- A(ataOf(kp.publicKey),true),
- A(P("EB8MZ8usqZSjh6TNJwEEnEurH4ojFXnNTzrAaZPDuG9b"),true),
- A(P("BV7xahNAH9vnwE3bNzNf1iHpuokk8cdj8iMoka7DnM1M"),false),
- A(P("CvbVJTpgDixPoCPVNBbbKdjcSo4awnC6rMCpQSBzACY4"),true),
- A(P("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"),false),
- A(SYS,false)]};
-const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKey,true,true),A(ataOf(kp.publicKey),true),A(kp.publicKey,false),A(TMINT,false),A(SYS,false),A(TK22,false)]};
- const prefix=await client.getConfigHashPrefix();
- const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix).addInstruction(mkAta).addInstruction(ix).build();
- setStatus("Signing and submitting swap…");
- const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
- if(res.executed===true&&!res.err){setStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey)}else{setStatus("Swap failed on-chain.")}
- }catch(e:any){setStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
- }
- function swapPct(p:number){
- const t2r=swapDir==="test2rialo";
- const b=t2r?parseFloat((testBal||"0").replace(/,/g,"")):Math.max(0,parseFloat(bal||"0")-0.01);
- setSwapAmt(String(+(b*p/100).toFixed(t2r?6:9)));
- }
- async function loadLiq(){
- try{
- const P=(s:string)=>PublicKey.fromString(s);
- const t:any=await client.getTokenAccountBalance(P("EB8MZ8usqZSjh6TNJwEEnEurH4ojFXnNTzrAaZPDuG9b"));
- const r:any=await client.getBalance(P("CvbVJTpgDixPoCPVNBbbKdjcSo4awnC6rMCpQSBzACY4"));
- setLiq({test:parseFloat(t.uiAmountString),rialo:Number(r)/KELVIN_PER_RLO});
- }catch(e:any){setLiq(null)}
- }
- function askSwap(){
- const n=parseFloat(swapAmt);
- if(!(n>0)){setStatus("Enter a valid swap amount.");return}
- const t2r=swapDir==="test2rialo";
- const get=+(n*(t2r?0.1:10)).toFixed(6);
- const rows=[["You pay",n+" "+(t2r?"TEST":"RIALO")],["You receive (est.)",get+" "+(t2r?"RIALO":"TEST")]];
- rows.push(["Rate",t2r?"1 TEST = 0.1 RIALO":"1 RIALO = 10 TEST"],["Network fee","~0.000005 RIALO"]);
- setConfirmBox({title:"Confirm Swap",rows,run:doSwap});
- }
- function askSend(){
- try{
- const d=PublicKey.fromString(to.trim());
- const n=Number(amount);
- if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
- setConfirmBox({title:"Confirm Transfer",rows:[["To",d.toString()],["Amount",n+" "+xferToken],["Network fee","~0.000005 RIALO"]],run:send});
- }catch(e:any){setStatus("Send failed: "+(e?.message||e))}
- }
- async function loadHistory(pub=kp?.publicKey){
- if(!pub)return;
- setHistLoading(true);
- try{
- const sigs:any[]=await client.getSignaturesForAddress(pub,{limit:10});
- const out=[];
- for(const s of sigs){
- let kind="Other",ok=!s.err;
- try{
- const tx:any=await (client as any).queryClient.call("getTransaction",[{signature:s.signature}]);
- const logs:string[]=tx?.meta?.logMessages||[];
- ok=!tx?.meta?.err;
- if(logs.some(l=>l.includes("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG")))kind="Swap";
- else if(logs.some(l=>l.includes("TransferChecked")))kind="Transfer TEST";
- else if(logs.length)kind="Transfer RIALO";
- }catch(e){}
- out.push({sig:s.signature,ok,kind,blockTime:s.blockTime?Number(s.blockTime):null});
- }
- setHistItems(out);
- }catch(e:any){setStatus("History error: "+(e?.message||e))}
- finally{setHistLoading(false)}
- }
- async function loadTest(pub=kp?.publicKey){
- if(!pub)return;
- try{
- const a:any=await client.getAccountInfo(ataOf(pub));
- if(!a){setTestBal("0");return}
- const u=Uint8Array.from(atob(a.data[0]),c=>c.charCodeAt(0));
- setTestBal((Number(new DataView(u.buffer).getBigUint64(64,true))/1e6).toLocaleString("en-US",{maximumFractionDigits:6}));
- }catch(e:any){setTestBal("0")}
- }
- async function loadTestOld(pub=kp?.publicKey){
- if(!pub)return;
- try{
- const a:any=await client.getAccountInfo(PublicKey.fromString("Hp3itcS1yLWvCeMMxVt833iDSxC4kXegAYC4AN6R4cgg"));
- const u=Uint8Array.from(atob(a.data[0]),c=>c.charCodeAt(0));
- const dv=new DataView(u.buffer);
- const same=new PublicKey(u.slice(32,64)).toString()===pub.toString();
- setTestBal(same?(Number(dv.getBigUint64(64,true))/1e6).toLocaleString("en-US",{maximumFractionDigits:6}):null);
- }catch(e:any){setTestBal(null)}
- }
 
  async function create(){
   if(!vaultPassword){
@@ -565,12 +451,10 @@ async function send(){
    const dest=PublicKey.fromString(to.trim()),n=Number(amount);
    if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
    const prefix=await client.getConfigHashPrefix();
-   const ixs:any[]=xferToken==="TEST"?testXfer(kp.publicKey,dest,n):[transferInstruction(kp.publicKey,dest,BigInt(Math.round(n*KELVIN_PER_RLO)))];
-   let tb:any=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix);
-   for(const i of ixs)tb=tb.addInstruction(i);
-   const tx=tb.build();
+   const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix)
+    .addInstruction(transferInstruction(kp.publicKey,dest,BigInt(Math.round(n*KELVIN_PER_RLO)))).build();
    setStatus("Signing and submitting…");const sig=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
-   const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest()
+   setStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh()
   }catch(e:any){setStatus("Send failed: "+(e?.message||e))}finally{setBusy(false)}
  }
  async function deleteActiveWallet(){
@@ -805,10 +689,7 @@ if(active){
 }
 
 setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.");}}}>Unlock Vault</button><button type="button" className="forgot-password" onClick={resetVault}>Forgot Password?</button>{status==="Incorrect password. Please try again."&&<p className="unlock-error">Incorrect password. Please try again.</p>}</section>:
-  !kp?<section className="card center"><div className="logo">◎</div><h2>Rialo Wallet</h2><p>Your vault is unlocked. Create or import a wallet to continue.</p><button disabled={busy} onClick={create}>{busy?"Creating...":"Create Wallet"}</button><button className="ghost" onClick={()=>{setImportMode("phrase");setImp("");setImporting(importMode!=="phrase"||!importing)}}>Import Mnemonic</button><button className="ghost" onClick={()=>{setImportMode("key");setImp("");setImporting(importMode!=="key"||!importing)}}>Import Private Key</button>{importing&&<div style={{marginTop:"14px"}}>
-<textarea value={imp} onChange={e=>setImp(e.target.value)} placeholder={importMode==="key"?"64-character hex private key":"Enter your recovery phrase"} autoCapitalize="off" autoCorrect="off" spellCheck={false} rows={4} style={{width:"100%"}}/>
-<button disabled={busy||!imp.trim()} onClick={importMode==="key"?restoreKey:restore}>{busy?"Importing...":"Import Wallet"}</button>
-</div>}<div className="status">{status}</div></section>:
+  !kp?<section className="card center"><div className="logo">◎</div><h2>Rialo Wallet</h2><p>Your vault is unlocked. Create or import a wallet to continue.</p><button disabled={busy} onClick={create}>{busy?"Creating...":"Create Wallet"}</button><button className="ghost" onClick={()=>setImporting(!importing)}>{importing?"Close Import":"Import Mnemonic"}</button></section>:
   <>
    <section className="card wallet-manager">
     <div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
@@ -941,9 +822,8 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
    <section className="grid">
     <div className="card">
-      <small><Ic d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3M3 7v11a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4M3 7l3-3h9"/>BALANCE</small>
+      <small>BALANCE</small>
       <div className="balance">{bal}<em> Rialo</em></div>
-      {network!=="devnet"&&testBal!==null&&<div className="balance">{testBal}<em> TEST</em></div>}
       <div className="address-row">
         <code>{short(addr)}</code>
         <button
@@ -966,67 +846,11 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </div>
    </section>
 
-   {confirmBox&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.45)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50,padding:"20px"}}>
-<div className="card" style={{width:"100%",maxWidth:"420px",background:"#fafaf8"}}>
-<h2 style={{marginTop:0}}>{confirmBox.title}</h2>
-{confirmBox.rows.map((r:any,i:number)=><div key={i} className="row" style={{justifyContent:"space-between",margin:"10px 0",gap:"12px"}}><small>{r[0]}</small><strong style={{wordBreak:"break-all",textAlign:"right"}}>{r[1]}</strong></div>)}
-<div className="row" style={{marginTop:"16px",justifyContent:"flex-end"}}>
-<button type="button" className="ghost" onClick={()=>setConfirmBox(null)}>Cancel</button>
-<button type="button" onClick={()=>{const r=confirmBox.run;setConfirmBox(null);r()}}>Confirm</button>
-</div>
-</div>
-</div>}
-{network!=="devnet"&&<section className="card swap" style={{marginTop:"14px"}}>
-<div onClick={()=>{setSwapOpen(!swapOpen);loadLiq()}} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-<div><small><Ic d="M7 10h13m0 0l-4-4m4 4l-4 4M17 14H4m0 0l4 4m-4-4l4-4"/>SWAP</small></div>
-<span style={{fontSize:"22px"}}>{swapOpen?"▴":"▾"}</span>
-</div>
-{swapOpen&&(()=>{
-const t2r=swapDir==="test2rialo",tk=t2r?"TEST":"RIALO",tk2=t2r?"RIALO":"TEST";
-const n=parseFloat(swapAmt),have=parseFloat((t2r?(testBal||"0"):(bal||"0")).replace(/,/g,""));
-const get=n>0?+(n*(t2r?0.1:10)).toFixed(6):0;
-const noLiq=!!liq&&n>0&&get>(t2r?liq.rialo-0.01:liq.test);
-const label=!(n>0)?"Enter an amount":n>have?"Insufficient "+tk:noLiq?"Insufficient liquidity":busy?"Processing…":"Swap";
-const off=busy||!(n>0)||n>have||noLiq;
-const row=(a:string,b:string)=><div style={{display:"flex",justifyContent:"space-between",margin:"8px 0",gap:"12px"}}><small>{a}</small><small style={{color:"#111",textAlign:"right"}}>{b}</small></div>;
-return <div style={{marginTop:"12px"}}>
-<div className="card" style={{padding:"14px"}}>
-<div style={{display:"flex",justifyContent:"space-between"}}><small>From</small><small>Balance: {have}</small></div>
-<div style={{display:"flex",alignItems:"center",gap:"8px",marginTop:"8px"}}>
-<input value={swapAmt} onChange={e=>setSwapAmt(e.target.value)} inputMode="decimal" placeholder="0" style={{flex:1,minWidth:0,fontSize:"32px",fontWeight:700,border:"none",background:"transparent",outline:"none"}}/>
-<strong style={{fontSize:"18px"}}>{tk}</strong>
-</div>
-<div style={{display:"flex",gap:"8px",marginTop:"12px"}}>
-{[25,50,75,100].map(p=><button key={p} type="button" className="ghost" disabled={busy} style={{flex:1,padding:"8px 0",fontSize:"14px"}} onClick={()=>swapPct(p)}>{p===100?"Max":p+"%"}</button>)}
-</div>
-</div>
-<div style={{display:"flex",justifyContent:"center",margin:"-12px 0",position:"relative",zIndex:1}}><button type="button" className="ghost" disabled={busy} style={{borderRadius:"50%",width:"44px",height:"44px",padding:0,background:"#fafaf8"}} onClick={()=>{setSwapDir(t2r?"rialo2test":"test2rialo");setSwapAmt("")}}>⇅</button></div>
-<div className="card" style={{padding:"14px"}}>
-<small>To (estimated)</small>
-<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:"8px"}}><span style={{fontSize:"32px",fontWeight:700}}>{get||"0"}</span><strong style={{fontSize:"18px"}}>{tk2}</strong></div>
-</div>
-<div style={{marginTop:"14px"}}>
-{row("Rate",t2r?"1 TEST = 0.1 RIALO":"1 RIALO = 10 TEST")}
-{row("Min. received",get+" "+tk2)}
-{row("Slippage","0% (fixed rate)")}
-{row("Price impact","0%")}
-{row("Network fee","~0.000005 RIALO")}
-{row("Pool liquidity",liq?liq.test.toLocaleString("en-US")+" TEST / "+liq.rialo.toFixed(2)+" RIALO":"—")}
-</div>
-<button style={{width:"100%",marginTop:"10px"}} disabled={off} onClick={askSwap}>{label}</button>
-</div>})()}
-</section>}
+   <section className="card send">
+    <small>SEND RIALO</small>
+    <h2>Transfer on Rialo {network==="devnet"?"DevNet":"Testnet"}</h2>
 
-   <section className="card send" style={{marginTop:"14px"}}>
-    <div onClick={()=>setSendOpen(!sendOpen)} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-<div><small><Ic d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>TRANSFER</small></div>
-<span style={{fontSize:"22px"}}>{sendOpen?"▴":"▾"}</span>
-</div>
-{sendOpen&&<div>
-
-    <label>Token</label>
-<select value={xferToken} disabled={busy} style={{border:"none",background:"transparent",boxShadow:"none",outline:"none",width:"auto",padding:0}} onChange={e=>setXferToken(e.target.value as any)}><option value="RIALO">RIALO</option>{network!=="devnet"&&<option value="TEST">TEST</option>}</select>
-<label>Recipient address</label>
+    <label>Recipient address</label>
     <input
       value={to}
       onChange={e=>setTo(e.target.value)}
@@ -1043,40 +867,20 @@ return <div style={{marginTop:"12px"}}>
         onChange={e=>setAmount(e.target.value)}
         placeholder="0.0"
       />
-      <b>{xferToken}</b>
+      <b>Rialo</b>
     </div>
 
     <button
       disabled={busy||!to||!amount}
-      onClick={askSend}
+      onClick={send}
     >
-      {busy?"Processing…":"Transfer"}
+      {busy?"Processing…":"Send Rialo"}
     </button>
-    </div>}
-   </section>
-
-<section className="card" style={{marginTop:"14px"}}>
-    <div onClick={()=>{const o=!histOpen;setHistOpen(o);if(o)loadHistory()}} style={{cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-     <small><Ic d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>HISTORY</small>
-     <span style={{fontSize:"22px"}}>{histOpen?"▴":"▾"}</span>
-    </div>
-    {histOpen&&<div style={{marginTop:"10px"}}>
-     {histLoading&&<small>Loading…</small>}
-     {!histLoading&&histItems.length===0&&<small>No transactions yet.</small>}
-     {histItems.map((h:any,i:number)=>
-      <div key={i} className="row" style={{justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #eee"}}>
-       <div>
-        <div style={{fontWeight:600}}>{h.kind}{!h.ok&&<span style={{color:"#c0392b"}}> · Failed</span>}</div>
-        <small>{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
-       </div>
-       <button type="button" className="ghost" onClick={()=>navigator.clipboard?.writeText(h.sig)}>{h.sig.slice(0,6)}…{h.sig.slice(-6)}</button>
-      </div>)}
-    </div>}
    </section>
 
    <div className="status">{status}</div><button className="danger" disabled={busy||!activeWallet} onClick={deleteActiveWallet}>Delete Wallet</button>
   </>}
-  <footer>Rialo Testnet ·</footer>
+  <footer>Rialo Testnet · https://testnet.rialo.io</footer>
  </main>
 }
 createRoot(document.getElementById("root")!).render(<App/>);
