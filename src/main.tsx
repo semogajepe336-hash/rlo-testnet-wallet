@@ -125,7 +125,7 @@ function App(){
   return createRialoClient(config);
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
- const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]);
+ const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]),[swapStatus,setSwapStatus]=useState(""),[xferStatus,setXferStatus]=useState("");
  const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
@@ -250,10 +250,10 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
 const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKey,true,true),A(ataOf(kp.publicKey),true),A(kp.publicKey,false),A(TMINT,false),A(SYS,false),A(TK22,false)]};
  const prefix=await client.getConfigHashPrefix();
  const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix).addInstruction(mkAta).addInstruction(ix).build();
- setStatus("Signing and submitting swap…");
+ setSwapStatus("Signing and submitting swap…");
  const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
- if(res.executed===true&&!res.err){setStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey)}else{setStatus("Swap failed on-chain.")}
- }catch(e:any){setStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
+ if(res.executed===true&&!res.err){setSwapStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq()}else{setSwapStatus("Swap failed on-chain.")}
+ }catch(e:any){setSwapStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
  }
  function swapPct(p:number){
  const t2r=swapDir==="test2rialo";
@@ -283,7 +283,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const n=Number(amount);
  if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
  setConfirmBox({title:"Confirm Transfer",rows:[["To",d.toString()],["Amount",n+" "+xferToken],["Network fee","~0.000005 RIALO"]],run:send});
- }catch(e:any){setStatus("Send failed: "+(e?.message||e))}
+ }catch(e:any){setXferStatus("Send failed: "+(e?.message||e))}
  }
  async function loadHistory(pub=kp?.publicKey){
  if(!pub)return;
@@ -560,7 +560,7 @@ function copyKey(){
 }
 
 async function send(){
-  if(!kp)return;setBusy(true);setStatus("Building transaction…");
+  if(!kp)return;setBusy(true);setXferStatus("Building transaction…");
   try{
    const dest=PublicKey.fromString(to.trim()),n=Number(amount);
    if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
@@ -569,8 +569,8 @@ async function send(){
    let tb:any=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix);
    for(const i of ixs)tb=tb.addInstruction(i);
    const tx=tb.build();
-   setStatus("Signing and submitting…");const sig=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
-   const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest()
+   setXferStatus("Signing and submitting…");const sig=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
+   const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setXferStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest();await loadHistory()
   }catch(e:any){setStatus("Send failed: "+(e?.message||e))}finally{setBusy(false)}
  }
  async function deleteActiveWallet(){
@@ -922,6 +922,9 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           setShow(false);
           setStatus(`Switched to ${w.name}.`);
           await refresh(k.publicKey);
+          await loadTest(k.publicKey);
+          if(swapOpen)await loadLiq();
+          if(histOpen)await loadHistory(k.publicKey);
         }catch(e:any){
           setStatus("Error: "+(e?.message||e));
         }
@@ -1013,7 +1016,7 @@ return <div style={{marginTop:"12px"}}>
 {row("Network fee","~0.000005 RIALO")}
 {row("Pool liquidity",liq?liq.test.toLocaleString("en-US")+" TEST / "+liq.rialo.toFixed(2)+" RIALO":"—")}
 </div>
-<button style={{width:"100%",marginTop:"10px"}} disabled={off} onClick={askSwap}>{label}</button>
+<button style={{width:"100%",marginTop:"10px"}} disabled={off} onClick={askSwap}>{label}</button>{swapStatus&&<div className="status">{swapStatus}</div>}
 </div>})()}
 </section>}
 
@@ -1051,7 +1054,7 @@ return <div style={{marginTop:"12px"}}>
       onClick={askSend}
     >
       {busy?"Processing…":"Transfer"}
-    </button>
+    </button>{xferStatus&&<div className="status">{xferStatus}</div>}
     </div>}
    </section>
 
