@@ -1067,7 +1067,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
           <small>ACTIVITY</small>
-          <h3 style={{margin:"5px 0 0"}}>Recent activity</h3>
+          
         </div>
         <span style={{fontSize:"22px"}}>{histOpen?"▴":"›"}</span>
       </div>
