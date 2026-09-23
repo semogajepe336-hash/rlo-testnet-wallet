@@ -1403,9 +1403,8 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           (t2r?(testBal||"0"):(bal||"0")).replace(/,/g,"")
         );
         const get=n>0?+(n*(t2r?0.1:10)).toFixed(6):0;
-        const poolIn=t2r?(liq?.test??Infinity):(liq?.rialo??Infinity);
         const poolOut=t2r?(liq?.rialo??Infinity):(liq?.test??Infinity);
-        const noLiq=!!liq&&n>0&&(n>poolIn||get>poolOut);
+        const noLiq=!!liq&&n>0&&get>poolOut;
         const label=!liq
           ?"Loading liquidity…"
           :!(n>0)
