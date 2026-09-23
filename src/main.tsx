@@ -937,6 +937,8 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
                 const k=await walletToKeypair(w);
                 const current=await vaultGet("wallets");
                 const data=JSON.parse(await decryptVault(current,vaultPassword));
+                const ordered=[w,...(data.wallets||[]).filter((item:any)=>item.id!==w.id)];
+                data.wallets=ordered;
                 data.activeWallet=w.id;
 
                 await vaultSet(
@@ -944,6 +946,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
                   await encryptVault(JSON.stringify(data),vaultPassword)
                 );
 
+                setWallets(ordered);
                 setActiveWallet(w.id);
                 setPhrase(w.phrase||"");
                 setKp(k);
