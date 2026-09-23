@@ -843,7 +843,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       <span className="main-wallet-arrow">{addWalletOpen?"⌄":"›"}</span>
     </button>
 
-    <div className="main-wallet-address">
+    {!addWalletOpen&&<div className="main-wallet-address">
       <code>{short(addr)}</code>
       <button
         className="copy-address"
@@ -854,10 +854,10 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="9" y="9" width="11" height="11" rx="2"/>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          <path d="M5 15H4a2 2 0 0 1 2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
         </svg>
       </button>
-    </div>
+    </div>}
 
     {importing&&<div className="card" style={{marginTop:"14px"}}>
       <div>
