@@ -691,7 +691,7 @@ function copyAddress(){
 
  return <>
   <header>
-  <b className="rialo-brand"><span className="rialo-logo">R</span> RIALO</b>
+  <b className="rialo-brand">RIALO Wallet</b>
   <div className="header-actions">
     <select
       className="network-select"
@@ -830,50 +830,34 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
   <>
    {view==="home"&&<>
    <section className="card wallet-manager">
-    <div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
+    <button
+      className="main-wallet-header"
+      type="button"
+      disabled={busy}
+      onClick={()=>setAddWalletOpen(!addWalletOpen)}
+    >
       <div>
         <small>WALLET</small>
         <h2>Main Wallet</h2>
       </div>
+      <span className="main-wallet-arrow">{addWalletOpen?"⌄":"›"}</span>
+    </button>
 
+    <div className="main-wallet-address">
+      <code>{short(addr)}</code>
       <button
-        className="add-wallet-button"
-        aria-label="Add Wallet"
-        disabled={busy}
-        onClick={()=>setAddWalletOpen(!addWalletOpen)}
+        className="copy-address"
+        disabled={busy||!addr}
+        onClick={(e)=>{e.stopPropagation();copyAddress()}}
+        title="Copy wallet address"
+        aria-label="Copy wallet address"
       >
-        +
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="9" y="9" width="11" height="11" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
       </button>
     </div>
-
-    {addWalletOpen&&<div className="card" style={{marginTop:"14px"}}>
-      <small>ADD WALLET</small>
-      <h3>Choose an option</h3>
-
-      <div className="row" style={{marginTop:"12px"}}>
-        <button
-          disabled={busy}
-          onClick={()=>{
-            setAddWalletOpen(false);
-            addWallet();
-          }}
-        >
-          Create New Wallet
-        </button>
-
-        <button
-          type="button"
-          className="ghost"
-          disabled={busy}
-          onClick={()=>{setImportMode("phrase");setImp("");setAddWalletOpen(false);setImporting(true);}}
-        >
- Import Recovery Phrase
- </button>
- <button type="button" className="ghost" disabled={busy} onClick={()=>{setImportMode("key");setImp("");setAddWalletOpen(false);setImporting(true);}}>
- Import Private Key
- </button>
-      </div>
-    </div>}
 
     {importing&&<div className="card" style={{marginTop:"14px"}}>
       <div>
@@ -915,52 +899,135 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       </div>
     </div>}
 
-    <div className="row" style={{marginTop:"14px",alignItems:"center"}}>
-      <select
-      value={activeWallet||""}
-      disabled={busy}
-      onChange={async e=>{
-        const id=e.target.value;
-        const w=wallets.find((x:any)=>x.id===id);
-        if(!w)return;
+    {addWalletOpen&&<div className="wallet-picker">
+      <small>WALLETS</small>
 
-        try{
-          const k=await walletToKeypair(w);
-
-          const current=await vaultGet("wallets");
-          const data=JSON.parse(await decryptVault(current,vaultPassword));
-          data.activeWallet=w.id;
-
-          await vaultSet(
-            "wallets",
-            await encryptVault(JSON.stringify(data),vaultPassword)
-          );
-
-          setActiveWallet(w.id);
-          setPhrase(w.phrase||"");
-          setKp(k);
-          setAddr(w.address);
-          setShow(false);
-          setStatus(`Switched to ${w.name}.`);
-          await refresh(k.publicKey);
-          await loadTest(k.publicKey);
-          if(swapOpen)await loadLiq();
-          if(histOpen)await loadHistory(k.publicKey);
-        }catch(e:any){
-          setStatus("Error: "+(e?.message||e));
-        }
-      }}
-      style={{flex:1}}
-    >
+      <div className="wallet-list">
         {wallets.map((w:any)=>(
-          <option key={w.id} value={w.id}>
-            {w.name}
-          </option>
+          <button
+            key={w.id}
+            type="button"
+            className={w.id===activeWallet?"wallet-option wallet-option-active":"wallet-option"}
+            disabled={busy}
+            onClick={async()=>{
+              if(w.id===activeWallet){
+                setAddWalletOpen(false);
+                return;
+              }
+
+              try{
+                const k=await walletToKeypair(w);
+                const current=await vaultGet("wallets");
+                const data=JSON.parse(await decryptVault(current,vaultPassword));
+                data.activeWallet=w.id;
+
+                await vaultSet(
+                  "wallets",
+                  await encryptVault(JSON.stringify(data),vaultPassword)
+                );
+
+                setActiveWallet(w.id);
+                setPhrase(w.phrase||"");
+                setKp(k);
+                setAddr(w.address);
+                setShow(false);
+                setAddWalletOpen(false);
+                setStatus(`Switched to ${w.name}.`);
+                await refresh(k.publicKey);
+                await loadTest(k.publicKey);
+                if(swapOpen)await loadLiq();
+                if(histOpen)await loadHistory(k.publicKey);
+              }catch(e:any){
+                setStatus("Error: "+(e?.message||e));
+              }
+            }}
+          >
+            <span className="wallet-option-info">
+              <span className="wallet-name-line">
+                <strong>{w.name}</strong>
+                <button
+                  type="button"
+                  className="wallet-edit-name"
+                  disabled={busy}
+                  onClick={(e)=>{
+                    e.stopPropagation();
+                    const name=window.prompt("Wallet name",w.name);
+                    if(!name?.trim()||name.trim()===w.name)return;
+
+                    (async()=>{
+                      try{
+                        const current=await vaultGet("wallets");
+                        const data=JSON.parse(await decryptVault(current,vaultPassword));
+                        const target=data.wallets?.find((x:any)=>x.id===w.id);
+                        if(!target)return;
+
+                        target.name=name.trim();
+
+                        await vaultSet(
+                          "wallets",
+                          await encryptVault(JSON.stringify(data),vaultPassword)
+                        );
+
+                        setWallets(data.wallets);
+                        setStatus("Wallet name updated.");
+                      }catch(e:any){
+                        setStatus("Error: "+(e?.message||e));
+                      }
+                    })();
+                  }}
+                  aria-label="Edit wallet name"
+                >
+                  ✎
+                </button>
+              </span>
+              <small>{short(w.address)}</small>
+            </span>
+            <span>{w.id===activeWallet?"✓":"›"}</span>
+          </button>
         ))}
-      </select>
+      </div>
 
+      {addWalletOpen&&<div className="add-wallet-options">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={()=>{
+            setAddWalletOpen(false);
+            addWallet();
+          }}
+        >
+          Create New Wallet
+        </button>
 
-    </div>
+        <button
+          type="button"
+          className="ghost"
+          disabled={busy}
+          onClick={()=>{
+            setImportMode("phrase");
+            setImp("");
+            setAddWalletOpen(false);
+            setImporting(true);
+          }}
+        >
+          Import Recovery Phrase
+        </button>
+
+        <button
+          type="button"
+          className="ghost"
+          disabled={busy}
+          onClick={()=>{
+            setImportMode("key");
+            setImp("");
+            setAddWalletOpen(false);
+            setImporting(true);
+          }}
+        >
+          Import Private Key
+        </button>
+      </div>}
+    </div>}
    </section>
 
     <section className="grid">
@@ -972,21 +1039,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           {bal ?? "—"}<em> RIALO</em>
         </div>
 
-        <div className="address-row">
-          <code>{short(addr)}</code>
-          <button
-            className="copy-address"
-            disabled={busy||!addr}
-            onClick={copyAddress}
-            title="Copy wallet address"
-            aria-label="Copy wallet address"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="9" y="9" width="11" height="11" rx="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-          </button>
-        </div>
+    
 
         <div className="wallet-actions wallet-actions-modern">
           <button

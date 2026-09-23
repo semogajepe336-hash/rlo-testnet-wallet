@@ -2905,3 +2905,239 @@ main:has(.wallet-menu){
   opacity:1 !important;
   visibility:visible !important;
 }
+
+.main-wallet-header{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  width:100% !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  text-align:left !important;
+  cursor:pointer !important;
+}
+
+.main-wallet-header h2{
+  margin:4px 0 0 !important;
+}
+
+.main-wallet-arrow{
+  font-size:28px !important;
+  line-height:1 !important;
+  font-weight:300 !important;
+}
+
+.main-wallet-address{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin-top:12px !important;
+  padding:0 !important;
+}
+
+.main-wallet-address code{
+  font-size:13px !important;
+}
+
+.main-wallet-address .copy-address{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:30px !important;
+  height:30px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  cursor:pointer !important;
+}
+
+.main-wallet-address .copy-address svg{
+  width:17px !important;
+  height:17px !important;
+}
+
+.main-wallet-header{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  width:100% !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  text-align:left !important;
+  cursor:pointer !important;
+}
+
+.main-wallet-header h2{
+  margin:4px 0 0 !important;
+}
+
+.main-wallet-arrow{
+  font-size:28px !important;
+  line-height:1 !important;
+  font-weight:300 !important;
+}
+
+.main-wallet-address{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin-top:12px !important;
+  padding:0 !important;
+}
+
+.main-wallet-address .copy-address{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:30px !important;
+  height:30px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+}
+
+.main-wallet-header,
+.main-wallet-header:hover,
+.main-wallet-header:focus,
+.main-wallet-header:active{
+  color:#111 !important;
+  background:transparent !important;
+}
+
+.main-wallet-header small,
+.main-wallet-header h2,
+.main-wallet-arrow{
+  color:#111 !important;
+}
+
+.main-wallet-address,
+.main-wallet-address code{
+  color:#111 !important;
+}
+
+.main-wallet-address .copy-address{
+  color:#111 !important;
+}
+
+.main-wallet-address .copy-address svg{
+  stroke:#111 !important;
+}
+
+
+.wallet-picker{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #e8e8e3;
+}
+
+.wallet-list{
+  margin-top:8px;
+}
+
+.wallet-option{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  width:100% !important;
+  padding:13px 4px !important;
+  margin:0 !important;
+  border:0 !important;
+  border-bottom:1px solid #e8e8e3 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  color:#111 !important;
+  text-align:left !important;
+}
+
+.wallet-option-info{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.wallet-option-info strong{
+  color:#111 !important;
+  font-size:14px;
+}
+
+.wallet-option-info small{
+  color:#777 !important;
+  font-size:12px;
+}
+
+.wallet-option-active{
+  font-weight:600 !important;
+}
+
+.add-new-wallet{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  width:100% !important;
+  padding:15px 4px !important;
+  margin-top:4px !important;
+  border:0 !important;
+  background:transparent !important;
+  color:#111 !important;
+  text-align:left !important;
+}
+
+.add-new-wallet span:first-child{
+  font-size:22px !important;
+  font-weight:300 !important;
+}
+
+.add-wallet-options{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:8px;
+  padding-top:12px;
+  border-top:1px solid #e8e8e3;
+}
+
+.add-wallet-options button{
+  width:100%;
+}
+
+.wallet-name-line{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.wallet-edit-name{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:22px !important;
+  height:22px !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+  color:#777 !important;
+  font-size:14px !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+}
+
+.wallet-edit-name:hover{
+  color:#111 !important;
+}
+
+.rialo-brand{
+  font-family:inherit !important;
+  font-size:inherit !important;
+  font-weight:inherit !important;
+  letter-spacing:inherit !important;
+  line-height:inherit !important;
+}
+
+.rialo-brand{
+  font-family:inherit !important;
+  font-weight:600 !important;
+}
