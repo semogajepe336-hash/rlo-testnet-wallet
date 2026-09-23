@@ -1640,7 +1640,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </div>
   }
 
-  <footer>©2026 Rialo Wallet. ·</footer>
+  <footer>©2026 Rialo Wallet. </footer>
  </main>
 </>
 }
