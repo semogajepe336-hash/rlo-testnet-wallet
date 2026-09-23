@@ -253,7 +253,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix).addInstruction(mkAta).addInstruction(ix).build();
  setSwapStatus("Signing and submitting swap…");
  const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
- if(res.executed===true&&!res.err){setSwapStatus("");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq();await loadHistory()}else{setSwapStatus("Swap failed on-chain.")}
+ if(res.executed===true&&!res.err){setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq();await loadHistory();setSwapStatus("")}else{setSwapStatus("Swap failed on-chain.")}
  }catch(e:any){setSwapStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
  }
  function swapPct(p:number){
