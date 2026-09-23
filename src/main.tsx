@@ -152,6 +152,22 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
  },[]);
  useEffect(()=>{
   if(!kp)return;
+  setHistItems([]);
+  setHistOpen(false);
+  setBal(null);
+  setTestBal(null);
+  setLiq(null);
+  const run=async()=>{
+    await refresh(kp.publicKey);
+    await loadTest(kp.publicKey);
+    await loadHistory(kp.publicKey);
+    if(network==="testnet"&&view==="swap") await loadLiq();
+  };
+  run();
+ },[network]);
+
+ useEffect(()=>{
+  if(!kp)return;
 
   let cancelled=false;
 
@@ -700,8 +716,10 @@ function copyAddress(){
         const next=e.target.value as "testnet"|"devnet";
         setNetwork(next);
         setBal(null);
+        setTestBal(null);
+        setLiq(null);
         if(next==="devnet" && view==="swap") setView("home");
-        setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}.`);
+        setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}`);
       }}
       aria-label="Network"
     >
@@ -757,7 +775,7 @@ function copyAddress(){
           <span>›</span>
         </button>
 
-        <button
+        {network==="testnet"&&<button
           onClick={async()=>{
             setMenuOpen(false);
             setView("swap");
@@ -766,7 +784,7 @@ function copyAddress(){
         >
           <span>Swap</span>
           <span>›</span>
-        </button>
+        </button>}
 
         <button
           onClick={()=>{
@@ -1444,7 +1462,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       <div className="faucet-page-content">
         
         <h2>RIALO Faucet</h2>
-        <p>Get RIALO tokens for testing on Rialo Testnet.</p>
+        <p>Get RIALO tokens for testing on Rialo {network==="devnet"?"Devnet":"Testnet"}.</p>
 
         <button
           className="primary faucet-claim-button"
