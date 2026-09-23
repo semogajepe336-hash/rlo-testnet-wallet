@@ -691,7 +691,7 @@ function copyAddress(){
 
  return <>
   <header>
-  <b>RIALO Wallet</b>
+  <b className="rialo-brand"><span className="rialo-logo">R</span> RIALO</b>
   <div className="header-actions">
     <select
       className="network-select"
@@ -719,97 +719,89 @@ function copyAddress(){
   </div>
 </header>
 
-<main>
+<main
+  onClick={e=>{
+    if(menuOpen && !(e.target as HTMLElement).closest(".wallet-menu")){
+      setMenuOpen(false);
+    }
+  }}
+>
 
   {menuOpen&&(
-    <section className="card wallet-menu">
+    <section className="card wallet-menu"
+      onTouchStart={e=>{
+        e.currentTarget.dataset.swipeX=String(e.touches[0].clientX);
+      }}
+      onTouchEnd={e=>{
+        const start=Number(e.currentTarget.dataset.swipeX||0);
+        const end=e.changedTouches[0].clientX;
+        if(start-end>60) setMenuOpen(false);
+      }}>
       <div className="wallet-menu-header">
-        <small>WALLET MENU</small>
+        <small>MENU</small>
         <button
           className="ghost menu-close"
-          onClick={()=>{
-            setMenuOpen(false);
-            setRecoveryOpen(false);
- setKeyOpen(false);
- setShowKey(false);
-          }}
+          onClick={()=>setMenuOpen(false)}
           aria-label="Close menu"
         >
           ×
         </button>
       </div>
 
-      {keyOpen ? (
-        <>
-          <small style={{display:"block",marginTop:"14px"}}>PRIVATE KEY</small>
-          <h2>Key Backup</h2>
-          <p className="warning">Anyone with this key can control the wallet. Never share it.</p>
-          <div className="phrase" style={{wordBreak:"break-all"}}>
-            {showKey&&kp?bytesToHex(kp.secretKeyBytes()):"•••• •••• •••• •••• •••• •••• •••• ••••"}
-          </div>
-          <div className="row">
-            <button className="ghost" onClick={()=>setShowKey(!showKey)}>{showKey?"Hide":"Show"}</button>
-            <button onClick={copyKey}>Copy</button>
-          </div>
-          <button className="ghost" onClick={()=>{setKeyOpen(false);setShowKey(false)}} style={{marginTop:"10px",width:"100%"}}>Back</button>
-        </>
-      ) : !recoveryOpen ? (
-<>
-<button
-          className="ghost"
-          disabled={!phrase}
-          onClick={()=>setRecoveryOpen(true)}
-          style={{width:"100%",marginTop:"12px"}}
+      <div className="wallet-nav">
+        <button
+          className={view==="home"?"wallet-nav-active":""}
+          onClick={()=>{setView("home");setMenuOpen(false);}}
         >
-          View Recovery Phrase
+          <span>Wallet</span>
+          <span>›</span>
         </button>
-<button className="ghost" disabled={!kp} onClick={()=>setKeyOpen(true)} style={{width:"100%",marginTop:"10px"}}>View Private Key</button>
-</>
-) : (
-        <>
-          <small style={{display:"block",marginTop:"14px"}}>RECOVERY PHRASE</small>
-          <h2>Wallet Backup</h2>
 
-          <p className="warning">
-            Anyone with this phrase can control the wallet. Never share it.
-          </p>
+        <button
+          onClick={async()=>{
+            setMenuOpen(false);
+            setView("swap");
+            await loadLiq();
+          }}
+        >
+          <span>Swap</span>
+          <span>›</span>
+        </button>
 
-          <div className="phrase">
-            {show
-              ? phrase
-              : "•••• •••• •••• •••• •••• •••• •••• •••• •••• •••• •••• ••••"}
-          </div>
+        <button
+          onClick={()=>{
+            setMenuOpen(false);
+            faucet();
+          }}
+        >
+          <span>Faucet</span>
+          <span>›</span>
+        </button>
 
-          <div className="row">
-            <button
-              className="ghost"
-              disabled={!phrase}
-              onClick={()=>setShow(!show)}
-            >
-              {show?"Hide":"Show"}
-            </button>
+        <button
+          onClick={async()=>{
+            setMenuOpen(false);
+            setView("home");
+            setHistOpen(true);
+            if(kp) await loadHistory(kp.publicKey);
+          }}
+        >
+          <span>History</span>
+          <span>›</span>
+        </button>
 
-            <button
-              disabled={!phrase}
-              onClick={copy}
-            >
-              Copy
-            </button>
-          </div>
-
-          <button
-            className="ghost"
-            onClick={()=>setRecoveryOpen(false)}
-            style={{marginTop:"10px",width:"100%"}}
-          >
-            Back
-          </button>
-        </>
-      )}
+        <button
+          className={view==="settings"?"wallet-nav-active":""}
+          onClick={()=>{setView("settings");setMenuOpen(false);}}
+        >
+          <span>Settings</span>
+          <span>›</span>
+        </button>
+      </div>
     </section>
   )}
 
-  <section className="hero"><small>RIALO TESTNET</small><h1>One Wallet.<br/>The Entire Rialo Ecosystem.</h1><p>Manage your assets, swap tokens, and explore Rialo on-chain.</p></section>
+  
   {!vaultExists?<section className="card center"><div className="logo">◎</div><h2>Create Your Vault</h2><p>Your wallet data will be encrypted and stored securely on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Create vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><small>Use at least 8 characters with both letters and numbers.</small>{vaultPassword&&<div className="password-strength"><span>Password strength:</span><strong>{passwordStrength(vaultPassword)}</strong></div>}<button disabled={busy||!isValidVaultPassword(vaultPassword)} onClick={createVault}>{busy?"Creating...":"Create Vault"}</button></section>:
   !vaultUnlocked?<section className="card center"><div className="logo">◎</div><h2>Unlock Your Vault</h2><p>Your wallets are stored in an encrypted vault on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><button disabled={!vaultPassword} onClick={async()=>{try{const data=await vaultGet("wallets");const plain=await decryptVault(data,vaultPassword);const parsed=JSON.parse(plain);
 const list=parsed.wallets||[];
@@ -974,7 +966,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     <section className="grid">
       <div className="card balance-card">
 
-        <small>TOTAL BALANCE</small>
+        <small className="balance-label">BALANCE</small>
 
         <div className="balance" style={{marginTop:"10px"}}>
           {bal ?? "—"}<em> RIALO</em>
@@ -996,12 +988,17 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           </button>
         </div>
 
-        <div className={`wallet-actions wallet-actions-modern ${network==="devnet"?"wallet-actions-devnet":""}`}>
+        <div className="wallet-actions wallet-actions-modern">
           <button
             disabled={busy}
             onClick={()=>{setXferToken("RIALO");setView("send")}}
           >
-            <span className="action-icon">↑</span>
+            <span className="action-icon action-icon-send">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14"/>
+                <path d="m13 6 6 6-6 6"/>
+              </svg>
+            </span>
             <small>SEND</small>
           </button>
 
@@ -1009,71 +1006,50 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
             disabled={busy||!addr}
             onClick={()=>{setXferToken("RIALO");setView("receive")}}
           >
-            <span className="action-icon">↓</span>
+            <span className="action-icon action-icon-receive">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3v13"/>
+                <path d="m6 10 6 6 6-6"/>
+              </svg>
+            </span>
             <small>RECEIVE</small>
           </button>
-
-          <button
-            disabled={busy}
-            onClick={faucet}
-          >
-            <span className="action-icon">+</span>
-            <small>FAUCET</small>
-          </button>
-
-          {network!=="devnet"&&
-          <button
-            disabled={busy}
-            onClick={async()=>{setView("swap");await loadLiq()}}
-          >
-            <span className="action-icon">⇄</span>
-            <small>SWAP</small>
-          </button>
-          }
         </div>
       </div>
     </section>
 
     <section className="assets-section">
-      <small>ASSETS</small>
+      <div className="section-title">ASSETS</div>
 
       {network!=="devnet"&&testBal!==null&&
         <div
-          className="asset-item test-asset-item"
-          style={{cursor:"pointer"}}
+          className="test-asset-row"
           onClick={()=>setView("test")}
         >
           <div>
             <div className="asset-name">TEST</div>
             <div className="asset-symbol">Test Token</div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
-            <div className="asset-value">{testBal}</div>
-            <span>›</span>
-          </div>
+          <div className="asset-value">{testBal}</div>
         </div>
       }
     </section>
 
     <section
-      className="card"
-      style={{marginTop:"14px",cursor:"pointer"}}
+      className="activity-section"
       onClick={async()=>{
         const o=!histOpen;
         setHistOpen(o);
         if(o&&kp) await loadHistory(kp.publicKey);
       }}
     >
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div>
-          <small>ACTIVITY</small>
-          
-        </div>
-        <span style={{fontSize:"22px"}}>{histOpen?"▴":"›"}</span>
+      <div className="section-title activity-title">
+        <span>ACTIVITY</span>
+        <span>{histOpen?"▴":"›"}</span>
       </div>
 
       {histOpen&&
-        <div style={{marginTop:"14px"}}>
+        <div className="activity-list">
           {histLoading&&<small>Loading…</small>}
 
           {!histLoading&&histItems.length===0&&
@@ -1083,13 +1059,8 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           {histItems.map((h:any,i:number)=>
             <div
               key={i}
-              className="row"
-              style={{
-                justifyContent:"space-between",
-                alignItems:"center",
-                padding:"12px 0",
-                borderBottom:"1px solid #eee"
-              }}
+              className="activity-row"
+              onClick={e=>e.stopPropagation()}
             >
               <div>
                 <div style={{fontWeight:650}}>
@@ -1112,6 +1083,70 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       }
     </section>
    </>}
+
+   {view==="settings"&&
+    <section className="card page-card settings-page">
+      <button className="ghost back-button" onClick={()=>setView("home")}>
+        Back
+      </button>
+
+      <small>SETTINGS</small>
+      <h2>Wallet Settings</h2>
+
+      <div className="settings-group">
+        <small>SECURITY</small>
+
+        <button
+          className="settings-item"
+          disabled={busy||!phrase}
+          onClick={async()=>{
+            try{
+              await navigator.clipboard.writeText(phrase);
+              setStatus("Recovery phrase copied.");
+            }catch{
+              setStatus("Unable to copy recovery phrase.");
+            }
+          }}
+        >
+          <span>Copy Recovery Phrase</span>
+          <span>›</span>
+        </button>
+
+        <button
+          className="settings-item"
+          disabled={busy||!kp}
+          onClick={async()=>{
+            try{
+              const key = kp?.secretKey
+                ? Array.from(kp.secretKey).map((b:any)=>b.toString(16).padStart(2,"0")).join("")
+                : "";
+              if(!key) throw new Error("Private key unavailable");
+              await navigator.clipboard.writeText(key);
+              setStatus("Private key copied.");
+            }catch{
+              setStatus("Unable to copy private key.");
+            }
+          }}
+        >
+          <span>Copy Private Key</span>
+          <span>›</span>
+        </button>
+      </div>
+
+      <div className="settings-group">
+        <small>WALLET</small>
+
+        <button
+          className="settings-item danger-setting"
+          disabled={busy||!activeWallet}
+          onClick={deleteActiveWallet}
+        >
+          <span>Delete Wallet</span>
+          <span>›</span>
+        </button>
+      </div>
+    </section>
+   }
 
    {view==="send"&&
     <section className="card page-card">
@@ -1309,7 +1344,19 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           :"Swap";
         const off=busy||!liq||!(n>0)||n>have||noLiq;
 
-        return <>
+        React.useEffect(()=>{
+    if(!menuOpen) return;
+    const closeMenu=(e:MouseEvent)=>{
+      const target=e.target as HTMLElement;
+      if(!target.closest(".wallet-menu") && !target.closest(".menu-button")){
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("click",closeMenu);
+    return()=>document.removeEventListener("click",closeMenu);
+  },[menuOpen]);
+
+  return <>
           <div className="swap-box">
             <div className="swap-box-top">
               <small>You pay</small>
