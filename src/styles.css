@@ -3144,3 +3144,14 @@ main:has(.wallet-menu){
 footer{
   text-align:center;
 }
+main:has(.card.center){
+  min-height:calc(100vh - 120px);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+main:has(.card.center) .card.center{
+  margin-top:0 !important;
+  margin-bottom:0 !important;
+}
