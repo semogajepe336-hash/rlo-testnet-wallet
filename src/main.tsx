@@ -132,7 +132,7 @@ function App(){
  const[vaultUnlocked,setVaultUnlocked]=useState(false);
  const[showVaultPassword,setShowVaultPassword]=useState(false);
  const[menuOpen,setMenuOpen]=useState(false);
-const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap">("home");
+const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap"|"faucet">("home");
 const[recoveryOpen,setRecoveryOpen]=useState(false);
 
  async function initializeVault(){
@@ -771,7 +771,7 @@ function copyAddress(){
         <button
           onClick={()=>{
             setMenuOpen(false);
-            faucet();
+            setView("faucet");
           }}
         >
           <span>Faucet</span>
@@ -1362,6 +1362,28 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </section>
    }
 
+   {view==="faucet"&&
+    <section className="card faucet-page">
+      <button className="ghost back-button" onClick={()=>setView("home")}>
+        Back
+      </button>
+
+      <div className="faucet-page-content">
+        
+        <h2>RIALO Faucet</h2>
+        <p>Get RIALO tokens for testing on Rialo Testnet.</p>
+
+        <button
+          className="primary faucet-claim-button"
+          disabled={busy||!addr}
+          onClick={faucet}
+        >
+          {busy?"Claiming…":"Claim Faucet"}
+        </button>
+      </div>
+    </section>
+   }
+
    {view==="swap"&&
     <section className="card page-card">
       <button className="ghost back-button" onClick={()=>setView("home")}>
@@ -1397,17 +1419,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           :"Swap";
         const off=busy||!liq||!(n>0)||n>have||noLiq;
 
-        React.useEffect(()=>{
-    if(!menuOpen) return;
-    const closeMenu=(e:MouseEvent)=>{
-      const target=e.target as HTMLElement;
-      if(!target.closest(".wallet-menu") && !target.closest(".menu-button")){
-        setMenuOpen(false);
-      }
-    };
-    document.addEventListener("click",closeMenu);
-    return()=>document.removeEventListener("click",closeMenu);
-  },[menuOpen]);
+
 
   return <>
           <div className="swap-box">
@@ -1493,13 +1505,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
    <div className="status">{status}</div>
 
-   <button
-     className="danger"
-     disabled={busy||!activeWallet}
-     onClick={deleteActiveWallet}
-   >
-     Delete Wallet
-   </button>
+
    </>}
   {confirmBox&&
     <div className="confirm-overlay">
