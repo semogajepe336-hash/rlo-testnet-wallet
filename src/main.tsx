@@ -126,7 +126,7 @@ function App(){
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
  const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[copiedSig,setCopiedSig]=useState(""),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]),[swapStatus,setSwapStatus]=useState(""),[xferStatus,setXferStatus]=useState("");
- const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
+ const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null),[showPhrase,setShowPhrase]=useState(false),[showPrivateKey,setShowPrivateKey]=useState(false);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
  const[vaultUnlocked,setVaultUnlocked]=useState(false);
@@ -1149,41 +1149,73 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       <div className="settings-group">
         <small>SECURITY</small>
 
-        <button
-          className="settings-item"
-          disabled={busy||!phrase}
-          onClick={async()=>{
-            try{
-              await navigator.clipboard.writeText(phrase);
-              setStatus("Recovery phrase copied.");
-            }catch{
-              setStatus("Unable to copy recovery phrase.");
-            }
-          }}
-        >
-          <span>Copy Recovery Phrase</span>
-          <span>›</span>
-        </button>
+        <div className="settings-secret">
+          <div>
+            <span>Recovery Phrase</span>
+            <code>{showPhrase ? phrase : "••••••••••••••••••••"}</code>
+          </div>
+          <div className="settings-secret-actions">
+            <button
+              type="button"
+              className="ghost"
+              disabled={busy||!phrase}
+              onClick={()=>setShowPhrase(!showPhrase)}
+            >
+              {showPhrase ? "Hide" : "Show"}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              disabled={busy||!phrase}
+              onClick={async()=>{
+                try{
+                  await navigator.clipboard.writeText(phrase);
+                  setStatus("Recovery phrase copied.");
+                }catch{
+                  setStatus("Unable to copy recovery phrase.");
+                }
+              }}
+            >
+              Copy
+            </button>
+          </div>
+        </div>
 
-        <button
-          className="settings-item"
-          disabled={busy||!kp}
-          onClick={async()=>{
-            try{
-              const key = kp?.secretKey
-                ? Array.from(kp.secretKey).map((b:any)=>b.toString(16).padStart(2,"0")).join("")
-                : "";
-              if(!key) throw new Error("Private key unavailable");
-              await navigator.clipboard.writeText(key);
-              setStatus("Private key copied.");
-            }catch{
-              setStatus("Unable to copy private key.");
-            }
-          }}
-        >
-          <span>Copy Private Key</span>
-          <span>›</span>
-        </button>
+        <div className="settings-secret">
+          <div>
+            <span>Private Key</span>
+            <code>{showPrivateKey ? (kp?.secretKey ? Array.from(kp.secretKey).map((b:any)=>b.toString(16).padStart(2,"0")).join("") : "") : "••••••••••••••••••••"}</code>
+          </div>
+          <div className="settings-secret-actions">
+            <button
+              type="button"
+              className="ghost"
+              disabled={busy||!kp}
+              onClick={()=>setShowPrivateKey(!showPrivateKey)}
+            >
+              {showPrivateKey ? "Hide" : "Show"}
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              disabled={busy||!kp}
+              onClick={async()=>{
+                try{
+                  const key = kp?.secretKey
+                    ? Array.from(kp.secretKey).map((b:any)=>b.toString(16).padStart(2,"0")).join("")
+                    : "";
+                  if(!key) throw new Error("Private key unavailable");
+                  await navigator.clipboard.writeText(key);
+                  setStatus("Private key copied.");
+                }catch{
+                  setStatus("Unable to copy private key.");
+                }
+              }}
+            >
+              Copy
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="settings-group">
