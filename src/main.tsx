@@ -1137,7 +1137,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
       {histOpen&&
         <div className="activity-list">
-          {histLoading&&<small>Loading…</small>}
+          
 
           {!histLoading&&histItems.length===0&&
             <small>No transactions yet.</small>
