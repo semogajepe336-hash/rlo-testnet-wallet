@@ -195,8 +195,8 @@ const config=getDefaultRialoClientConfig(network);
 const httpUrl=network==="devnet"?window.location.origin+"/api/rialo":config.chain.rpcUrl;
 ws=new WebSocket(httpUrl.replace(/^http/,"ws"));
 ws.onopen=()=>{ws.send(JSON.stringify({jsonrpc:"2.0",id:1,method:"accountSubscribe",params:[kp.publicKey.toString(),{commitment:"confirmed",encoding:"base64"}]}));};
-ws.onmessage=()=>{if(!cancelled){loadBalance();loadHistory(kp.publicKey);}};
-const pollBoth=()=>{loadBalance();loadHistory(kp.publicKey);};
+ws.onmessage=()=>{if(!cancelled){loadBalance();loadHistory(kp.publicKey,true);}};
+const pollBoth=()=>{loadBalance();loadHistory(kp.publicKey,true);};
 ws.onerror=()=>{if(!fallbackInterval){pollBoth();fallbackInterval=setInterval(pollBoth,4000);}};
 ws.onclose=()=>{if(!cancelled&&!fallbackInterval){pollBoth();fallbackInterval=setInterval(pollBoth,4000);}};
 }catch(e){fallbackInterval=setInterval(loadBalance,4000);}
@@ -353,7 +353,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  }
  setHistItems(out);
  }catch(e:any){setStatus("History error: "+(e?.message||e))}
- finally{setHistLoading(false)}
+ finally{if(!silent)setHistLoading(false)}
  }
  async function loadTest(pub=kp?.publicKey){
  if(!pub)return;
