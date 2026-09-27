@@ -195,7 +195,7 @@ const config=getDefaultRialoClientConfig(network);
 const httpUrl=network==="devnet"?window.location.origin+"/api/rialo":config.chain.rpcUrl;
 ws=new WebSocket(httpUrl.replace(/^http/,"ws"));
 ws.onopen=()=>{ws.send(JSON.stringify({jsonrpc:"2.0",id:1,method:"accountSubscribe",params:[kp.publicKey.toString(),{commitment:"confirmed",encoding:"base64"}]}));};
-ws.onmessage=()=>{if(!cancelled)loadBalance();};
+ws.onmessage=()=>{if(!cancelled){loadBalance();loadHistory(kp.publicKey);}};
 ws.onerror=()=>{if(!fallbackInterval)fallbackInterval=setInterval(loadBalance,4000);};
 ws.onclose=()=>{if(!cancelled&&!fallbackInterval)fallbackInterval=setInterval(loadBalance,4000);};
 }catch(e){fallbackInterval=setInterval(loadBalance,4000);}
