@@ -196,8 +196,9 @@ const httpUrl=network==="devnet"?window.location.origin+"/api/rialo":config.chai
 ws=new WebSocket(httpUrl.replace(/^http/,"ws"));
 ws.onopen=()=>{ws.send(JSON.stringify({jsonrpc:"2.0",id:1,method:"accountSubscribe",params:[kp.publicKey.toString(),{commitment:"confirmed",encoding:"base64"}]}));};
 ws.onmessage=()=>{if(!cancelled){loadBalance();loadHistory(kp.publicKey);}};
-ws.onerror=()=>{if(!fallbackInterval)fallbackInterval=setInterval(loadBalance,4000);};
-ws.onclose=()=>{if(!cancelled&&!fallbackInterval)fallbackInterval=setInterval(loadBalance,4000);};
+const pollBoth=()=>{loadBalance();loadHistory(kp.publicKey);};
+ws.onerror=()=>{if(!fallbackInterval){pollBoth();fallbackInterval=setInterval(pollBoth,4000);}};
+ws.onclose=()=>{if(!cancelled&&!fallbackInterval){pollBoth();fallbackInterval=setInterval(pollBoth,4000);}};
 }catch(e){fallbackInterval=setInterval(loadBalance,4000);}
 
 return()=>{cancelled=true;try{ws&&ws.close();}catch(e){}if(fallbackInterval)clearInterval(fallbackInterval);};
