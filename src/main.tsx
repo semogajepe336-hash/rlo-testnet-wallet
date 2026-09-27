@@ -189,8 +189,20 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
 
   loadBalance();
 
-  return()=>{cancelled=true;};
- },[network,kp,client]);
+let ws=null;let fallbackInterval=null;
+try{
+const config=getDefaultRialoClientConfig(network);
+const httpUrl=network==="devnet"?window.location.origin+"/api/rialo":config.chain.rpcUrl;
+ws=new WebSocket(httpUrl.replace(/^http/,"ws"));
+ws.onopen=()=>{ws.send(JSON.stringify({jsonrpc:"2.0",id:1,method:"accountSubscribe",params:[kp.publicKey.toString(),{commitment:"confirmed",encoding:"base64"}]}));};
+ws.onmessage=()=>{if(!cancelled)loadBalance();};
+ws.onerror=()=>{if(!fallbackInterval)fallbackInterval=setInterval(loadBalance,4000);};
+ws.onclose=()=>{if(!cancelled&&!fallbackInterval)fallbackInterval=setInterval(loadBalance,4000);};
+}catch(e){fallbackInterval=setInterval(loadBalance,4000);}
+
+return()=>{cancelled=true;try{ws&&ws.close();}catch(e){}if(fallbackInterval)clearInterval(fallbackInterval);};
+
+},[network,kp,client]);
 
 
  const[to,setTo]=useState(""),[amount,setAmount]=useState(""),[status,setStatus]=useState("Create a wallet to begin.");
