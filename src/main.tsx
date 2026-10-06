@@ -316,6 +316,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  }catch(e:any){setXferStatus("Send failed: "+(e?.message||e))}
  }
  function copySig(sig:string){
+  window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+sig,"_blank","noopener");return;
   const done=()=>{setCopiedSig(sig);setTimeout(()=>setCopiedSig(""),1200)};
   if(navigator.clipboard?.writeText){
    navigator.clipboard.writeText(sig).then(done).catch(()=>{
