@@ -178,7 +178,7 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
 
     if(!cancelled){
      setBal((Number(b)/KELVIN_PER_RLO).toFixed(6));loadTest(kp.publicKey);
-     setStatus(`Balance loaded from ${network==="devnet"?"DevNet":"Testnet"}.`);
+     setStatus("");
     }
    }catch(e:any){
     if(!cancelled){
