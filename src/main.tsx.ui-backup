@@ -126,13 +126,13 @@ function App(){
 },[network]);
  const[kp,setKp]=useState<any>(null),[phrase,setPhrase]=useState(""),[addr,setAddr]=useState(""),[bal,setBal]=useState<string|null>(null);
  const[testBal,setTestBal]=useState<string|null>(null),[swapDir,setSwapDir]=useState<"test2rialo"|"rialo2test">("test2rialo"),[swapAmt,setSwapAmt]=useState(""),[swapOpen,setSwapOpen]=useState(false),[sendOpen,setSendOpen]=useState(false),[confirmBox,setConfirmBox]=useState<any>(null),[xferToken,setXferToken]=useState<"RIALO"|"TEST">("RIALO"),[liq,setLiq]=useState<any>(null),[copiedSig,setCopiedSig]=useState(""),[histOpen,setHistOpen]=useState(false),[histLoading,setHistLoading]=useState(false),[histItems,setHistItems]=useState<any[]>([]),[swapStatus,setSwapStatus]=useState(""),[xferStatus,setXferStatus]=useState("");
- const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null),[secretPopup,setSecretPopup]=useState<"phrase"|"key"|null>(null),[showSecret,setShowSecret]=useState(false);
+ const[wallets,setWallets]=useState<any[]>([]),[activeWallet,setActiveWallet]=useState<string|null>(null);
  const[vaultPassword,setVaultPassword]=useState("");
  const[vaultExists,setVaultExists]=useState(false);
  const[vaultUnlocked,setVaultUnlocked]=useState(false);
  const[showVaultPassword,setShowVaultPassword]=useState(false);
  const[menuOpen,setMenuOpen]=useState(false);
-const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap"|"faucet">("home");
+const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap">("home");
 const[recoveryOpen,setRecoveryOpen]=useState(false);
 
  async function initializeVault(){
@@ -150,22 +150,6 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
  useEffect(()=>{
   initializeVault();
  },[]);
- useEffect(()=>{
-  if(!kp)return;
-  setHistItems([]);
-  setHistOpen(false);
-  setBal(null);
-  setTestBal(null);
-  setLiq(null);
-  const run=async()=>{
-    await refresh(kp.publicKey);
-    await loadTest(kp.publicKey);
-    await loadHistory(kp.publicKey);
-    if(network==="testnet"&&view==="swap") await loadLiq();
-  };
-  run();
- },[network]);
-
  useEffect(()=>{
   if(!kp)return;
 
@@ -189,21 +173,8 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
 
   loadBalance();
 
-let ws=null;let fallbackInterval=null;
-try{
-const config=getDefaultRialoClientConfig(network);
-const httpUrl=network==="devnet"?window.location.origin+"/api/rialo":config.chain.rpcUrl;
-ws=new WebSocket(httpUrl.replace(/^http/,"ws"));
-ws.onopen=()=>{ws.send(JSON.stringify({jsonrpc:"2.0",id:1,method:"accountSubscribe",params:[kp.publicKey.toString(),{commitment:"confirmed",encoding:"base64"}]}));};
-ws.onmessage=()=>{if(!cancelled){loadBalance();loadHistory(kp.publicKey,true);}};
-const pollBoth=()=>{loadBalance();loadHistory(kp.publicKey,true);};
-ws.onerror=()=>{if(!fallbackInterval){pollBoth();fallbackInterval=setInterval(pollBoth,4000);}};
-ws.onclose=()=>{if(!cancelled&&!fallbackInterval){pollBoth();fallbackInterval=setInterval(pollBoth,4000);}};
-}catch(e){fallbackInterval=setInterval(loadBalance,4000);}
-
-return()=>{cancelled=true;try{ws&&ws.close();}catch(e){}if(fallbackInterval)clearInterval(fallbackInterval);};
-
-},[network,kp,client]);
+  return()=>{cancelled=true;};
+ },[network,kp,client]);
 
 
  const[to,setTo]=useState(""),[amount,setAmount]=useState(""),[status,setStatus]=useState("Create a wallet to begin.");
@@ -282,7 +253,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const tx=TransactionBuilder.create().setPayer(kp.publicKey).setValidFrom(BigInt(Date.now())).setConfigHashPrefix(prefix).addInstruction(mkAta).addInstruction(ix).build();
  setSwapStatus("Signing and submitting swap…");
  const res:any=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
- if(res.executed===true&&!res.err){setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq();await loadHistory();setSwapStatus("Swap successful: "+(res.signature?.toString?.()||res.toString()))}else{setSwapStatus("Swap failed on-chain.")}
+ if(res.executed===true&&!res.err){setSwapStatus("Swap successful.");setSwapAmt("");await refresh(kp.publicKey);await loadTest(kp.publicKey);await loadLiq();await loadHistory()}else{setSwapStatus("Swap failed on-chain.")}
  }catch(e:any){setSwapStatus("Swap error: "+(e?.message||e))}finally{setBusy(false)}
  }
  function swapPct(p:number){
@@ -316,7 +287,6 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  }catch(e:any){setXferStatus("Send failed: "+(e?.message||e))}
  }
  function copySig(sig:string){
-  window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+sig,"_blank","noopener");return;
   const done=()=>{setCopiedSig(sig);setTimeout(()=>setCopiedSig(""),1200)};
   if(navigator.clipboard?.writeText){
    navigator.clipboard.writeText(sig).then(done).catch(()=>{
@@ -334,7 +304,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
    document.body.removeChild(ta);
   }
  }
- async function loadHistory(pub=kp?.publicKey,silent=false){
+ async function loadHistory(pub=kp?.publicKey){
  if(!pub)return;
  setHistLoading(true);
  try{
@@ -354,7 +324,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  }
  setHistItems(out);
  }catch(e:any){setStatus("History error: "+(e?.message||e))}
- finally{if(!silent)setHistLoading(false)}
+ finally{setHistLoading(false)}
  }
  async function loadTest(pub=kp?.publicKey){
  if(!pub)return;
@@ -721,7 +691,7 @@ function copyAddress(){
 
  return <>
   <header>
-  <b className="rialo-brand">RIALO Wallet</b>
+  <b>RIALO Wallet</b>
   <div className="header-actions">
     <select
       className="network-select"
@@ -730,10 +700,8 @@ function copyAddress(){
         const next=e.target.value as "testnet"|"devnet";
         setNetwork(next);
         setBal(null);
-        setTestBal(null);
-        setLiq(null);
         if(next==="devnet" && view==="swap") setView("home");
-        setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}`);
+        setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}.`);
       }}
       aria-label="Network"
     >
@@ -751,89 +719,97 @@ function copyAddress(){
   </div>
 </header>
 
-<main
-  onClick={e=>{
-    if(menuOpen && !(e.target as HTMLElement).closest(".wallet-menu")){
-      setMenuOpen(false);
-    }
-  }}
->
+<main>
 
   {menuOpen&&(
-    <section className="card wallet-menu"
-      onTouchStart={e=>{
-        e.currentTarget.dataset.swipeX=String(e.touches[0].clientX);
-      }}
-      onTouchEnd={e=>{
-        const start=Number(e.currentTarget.dataset.swipeX||0);
-        const end=e.changedTouches[0].clientX;
-        if(start-end>60) setMenuOpen(false);
-      }}>
+    <section className="card wallet-menu">
       <div className="wallet-menu-header">
-        <small>MENU</small>
+        <small>WALLET MENU</small>
         <button
           className="ghost menu-close"
-          onClick={()=>setMenuOpen(false)}
+          onClick={()=>{
+            setMenuOpen(false);
+            setRecoveryOpen(false);
+ setKeyOpen(false);
+ setShowKey(false);
+          }}
           aria-label="Close menu"
         >
           ×
         </button>
       </div>
 
-      <div className="wallet-nav">
-        <button
-          className={view==="home"?"wallet-nav-active":""}
-          onClick={()=>{setView("home");setMenuOpen(false);}}
+      {keyOpen ? (
+        <>
+          <small style={{display:"block",marginTop:"14px"}}>PRIVATE KEY</small>
+          <h2>Key Backup</h2>
+          <p className="warning">Anyone with this key can control the wallet. Never share it.</p>
+          <div className="phrase" style={{wordBreak:"break-all"}}>
+            {showKey&&kp?bytesToHex(kp.secretKeyBytes()):"•••• •••• •••• •••• •••• •••• •••• ••••"}
+          </div>
+          <div className="row">
+            <button className="ghost" onClick={()=>setShowKey(!showKey)}>{showKey?"Hide":"Show"}</button>
+            <button onClick={copyKey}>Copy</button>
+          </div>
+          <button className="ghost" onClick={()=>{setKeyOpen(false);setShowKey(false)}} style={{marginTop:"10px",width:"100%"}}>Back</button>
+        </>
+      ) : !recoveryOpen ? (
+<>
+<button
+          className="ghost"
+          disabled={!phrase}
+          onClick={()=>setRecoveryOpen(true)}
+          style={{width:"100%",marginTop:"12px"}}
         >
-          <span>Wallet</span>
-          <span>›</span>
+          View Recovery Phrase
         </button>
+<button className="ghost" disabled={!kp} onClick={()=>setKeyOpen(true)} style={{width:"100%",marginTop:"10px"}}>View Private Key</button>
+</>
+) : (
+        <>
+          <small style={{display:"block",marginTop:"14px"}}>RECOVERY PHRASE</small>
+          <h2>Wallet Backup</h2>
 
-        {network==="testnet"&&<button
-          onClick={async()=>{
-            setMenuOpen(false);
-            setView("swap");
-            await loadLiq();
-          }}
-        >
-          <span>Swap</span>
-          <span>›</span>
-        </button>}
+          <p className="warning">
+            Anyone with this phrase can control the wallet. Never share it.
+          </p>
 
-        <button
-          onClick={()=>{
-            setMenuOpen(false);
-            setView("faucet");
-          }}
-        >
-          <span>Faucet</span>
-          <span>›</span>
-        </button>
+          <div className="phrase">
+            {show
+              ? phrase
+              : "•••• •••• •••• •••• •••• •••• •••• •••• •••• •••• •••• ••••"}
+          </div>
 
-        <button
-          onClick={async()=>{
-            setMenuOpen(false);
-            setView("home");
-            setHistOpen(true);
-            if(kp) await loadHistory(kp.publicKey);
-          }}
-        >
-          <span>History</span>
-          <span>›</span>
-        </button>
+          <div className="row">
+            <button
+              className="ghost"
+              disabled={!phrase}
+              onClick={()=>setShow(!show)}
+            >
+              {show?"Hide":"Show"}
+            </button>
 
-        <button
-          className={view==="settings"?"wallet-nav-active":""}
-          onClick={()=>{setView("settings");setMenuOpen(false);}}
-        >
-          <span>Settings</span>
-          <span>›</span>
-        </button>
-      </div>
+            <button
+              disabled={!phrase}
+              onClick={copy}
+            >
+              Copy
+            </button>
+          </div>
+
+          <button
+            className="ghost"
+            onClick={()=>setRecoveryOpen(false)}
+            style={{marginTop:"10px",width:"100%"}}
+          >
+            Back
+          </button>
+        </>
+      )}
     </section>
   )}
 
-  
+  <section className="hero"><small>RIALO TESTNET</small><h1>One Wallet.<br/>The Entire Rialo Ecosystem.</h1><p>Manage your assets, swap tokens, and explore Rialo on-chain.</p></section>
   {!vaultExists?<section className="card center"><div className="logo">◎</div><h2>Create Your Vault</h2><p>Your wallet data will be encrypted and stored securely on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Create vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><small>Use at least 8 characters with both letters and numbers.</small>{vaultPassword&&<div className="password-strength"><span>Password strength:</span><strong>{passwordStrength(vaultPassword)}</strong></div>}<button disabled={busy||!isValidVaultPassword(vaultPassword)} onClick={createVault}>{busy?"Creating...":"Create Vault"}</button></section>:
   !vaultUnlocked?<section className="card center"><div className="logo">◎</div><h2>Unlock Your Vault</h2><p>Your wallets are stored in an encrypted vault on this device.</p><div className="password-box"><input type={showVaultPassword?"text":"password"} placeholder="Vault password" value={vaultPassword} onChange={e=>setVaultPassword(e.target.value)}/><button type="button" className="ghost" onClick={()=>setShowVaultPassword(!showVaultPassword)}>{showVaultPassword?"Hide":"Show"}</button></div><button disabled={!vaultPassword} onClick={async()=>{try{const data=await vaultGet("wallets");const plain=await decryptVault(data,vaultPassword);const parsed=JSON.parse(plain);
 const list=parsed.wallets||[];
@@ -862,33 +838,49 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
   <>
    {view==="home"&&<>
    <section className="card wallet-manager">
-    <button
-      className="main-wallet-header"
-      type="button"
-      disabled={busy}
-      onClick={()=>setAddWalletOpen(!addWalletOpen)}
-    >
+    <div className="row" style={{justifyContent:"space-between",alignItems:"center"}}>
       <div>
         <small>WALLET</small>
         <h2>Main Wallet</h2>
       </div>
-      <span className="main-wallet-arrow">{addWalletOpen?"⌄":"›"}</span>
-    </button>
 
-    {!addWalletOpen&&<div className="main-wallet-address">
-      <code>{short(addr)}</code>
       <button
-        className="copy-address"
-        disabled={busy||!addr}
-        onClick={(e)=>{e.stopPropagation();copyAddress()}}
-        title="Copy wallet address"
-        aria-label="Copy wallet address"
+        className="add-wallet-button"
+        aria-label="Add Wallet"
+        disabled={busy}
+        onClick={()=>setAddWalletOpen(!addWalletOpen)}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="9" y="9" width="11" height="11" rx="2"/>
-          <path d="M5 15H4a2 2 0 0 1 2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-        </svg>
+        +
       </button>
+    </div>
+
+    {addWalletOpen&&<div className="card" style={{marginTop:"14px"}}>
+      <small>ADD WALLET</small>
+      <h3>Choose an option</h3>
+
+      <div className="row" style={{marginTop:"12px"}}>
+        <button
+          disabled={busy}
+          onClick={()=>{
+            setAddWalletOpen(false);
+            addWallet();
+          }}
+        >
+          Create New Wallet
+        </button>
+
+        <button
+          type="button"
+          className="ghost"
+          disabled={busy}
+          onClick={()=>{setImportMode("phrase");setImp("");setAddWalletOpen(false);setImporting(true);}}
+        >
+ Import Recovery Phrase
+ </button>
+ <button type="button" className="ghost" disabled={busy} onClick={()=>{setImportMode("key");setImp("");setAddWalletOpen(false);setImporting(true);}}>
+ Import Private Key
+ </button>
+      </div>
     </div>}
 
     {importing&&<div className="card" style={{marginTop:"14px"}}>
@@ -931,162 +923,85 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       </div>
     </div>}
 
-    {addWalletOpen&&<div className="wallet-picker">
-      <small>WALLETS</small>
+    <div className="row" style={{marginTop:"14px",alignItems:"center"}}>
+      <select
+      value={activeWallet||""}
+      disabled={busy}
+      onChange={async e=>{
+        const id=e.target.value;
+        const w=wallets.find((x:any)=>x.id===id);
+        if(!w)return;
 
-      <div className="wallet-list">
+        try{
+          const k=await walletToKeypair(w);
+
+          const current=await vaultGet("wallets");
+          const data=JSON.parse(await decryptVault(current,vaultPassword));
+          data.activeWallet=w.id;
+
+          await vaultSet(
+            "wallets",
+            await encryptVault(JSON.stringify(data),vaultPassword)
+          );
+
+          setActiveWallet(w.id);
+          setPhrase(w.phrase||"");
+          setKp(k);
+          setAddr(w.address);
+          setShow(false);
+          setStatus(`Switched to ${w.name}.`);
+          await refresh(k.publicKey);
+          await loadTest(k.publicKey);
+          if(swapOpen)await loadLiq();
+          if(histOpen)await loadHistory(k.publicKey);
+        }catch(e:any){
+          setStatus("Error: "+(e?.message||e));
+        }
+      }}
+      style={{flex:1}}
+    >
         {wallets.map((w:any)=>(
-          <button
-            key={w.id}
-            type="button"
-            className={w.id===activeWallet?"wallet-option wallet-option-active":"wallet-option"}
-            disabled={busy}
-            onClick={async()=>{
-              if(w.id===activeWallet){
-                setAddWalletOpen(false);
-                return;
-              }
-
-              try{
-                const k=await walletToKeypair(w);
-                const current=await vaultGet("wallets");
-                const data=JSON.parse(await decryptVault(current,vaultPassword));
-                const ordered=[w,...(data.wallets||[]).filter((item:any)=>item.id!==w.id)];
-                data.wallets=ordered;
-                data.activeWallet=w.id;
-
-                await vaultSet(
-                  "wallets",
-                  await encryptVault(JSON.stringify(data),vaultPassword)
-                );
-
-                setWallets(ordered);
-                setActiveWallet(w.id);
-                setPhrase(w.phrase||"");
-                setKp(k);
-                setAddr(w.address);
-                setShow(false);
-                setAddWalletOpen(false);
-                setStatus(`Switched to ${w.name}.`);
-                await refresh(k.publicKey);
-                await loadTest(k.publicKey);
-                if(swapOpen)await loadLiq();
-                if(histOpen)await loadHistory(k.publicKey);
-              }catch(e:any){
-                setStatus("Error: "+(e?.message||e));
-              }
-            }}
-          >
-            <span className="wallet-option-info">
-              <span className="wallet-name-line">
-                <strong>{w.name}</strong>
-                <button
-                  type="button"
-                  className="wallet-edit-name"
-                  disabled={busy}
-                  onClick={(e)=>{
-                    e.stopPropagation();
-                    const name=window.prompt("Wallet name",w.name);
-                    if(!name?.trim()||name.trim()===w.name)return;
-
-                    (async()=>{
-                      try{
-                        const current=await vaultGet("wallets");
-                        const data=JSON.parse(await decryptVault(current,vaultPassword));
-                        const target=data.wallets?.find((x:any)=>x.id===w.id);
-                        if(!target)return;
-
-                        target.name=name.trim();
-
-                        await vaultSet(
-                          "wallets",
-                          await encryptVault(JSON.stringify(data),vaultPassword)
-                        );
-
-                        setWallets(data.wallets);
-                        setStatus("Wallet name updated.");
-                      }catch(e:any){
-                        setStatus("Error: "+(e?.message||e));
-                      }
-                    })();
-                  }}
-                  aria-label="Edit wallet name"
-                >
-                  ✎
-                </button>
-              </span>
-              <small>{short(w.address)}</small>
-            </span>
-            <span>{w.id===activeWallet?"✓":"›"}</span>
-          </button>
+          <option key={w.id} value={w.id}>
+            {w.name}
+          </option>
         ))}
-      </div>
+      </select>
 
-      {addWalletOpen&&<div className="add-wallet-options">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={()=>{
-            setAddWalletOpen(false);
-            addWallet();
-          }}
-        >
-          Create New Wallet
-        </button>
 
-        <button
-          type="button"
-          className="ghost"
-          disabled={busy}
-          onClick={()=>{
-            setImportMode("phrase");
-            setImp("");
-            setAddWalletOpen(false);
-            setImporting(true);
-          }}
-        >
-          Import Recovery Phrase
-        </button>
-
-        <button
-          type="button"
-          className="ghost"
-          disabled={busy}
-          onClick={()=>{
-            setImportMode("key");
-            setImp("");
-            setAddWalletOpen(false);
-            setImporting(true);
-          }}
-        >
-          Import Private Key
-        </button>
-      </div>}
-    </div>}
+    </div>
    </section>
 
     <section className="grid">
       <div className="card balance-card">
 
-        <small className="balance-label">BALANCE</small>
+        <small>TOTAL BALANCE</small>
 
         <div className="balance" style={{marginTop:"10px"}}>
           {bal ?? "—"}<em> RIALO</em>
         </div>
 
-    
+        <div className="address-row">
+          <code>{short(addr)}</code>
+          <button
+            className="copy-address"
+            disabled={busy||!addr}
+            onClick={copyAddress}
+            title="Copy wallet address"
+            aria-label="Copy wallet address"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="11" height="11" rx="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+          </button>
+        </div>
 
-        <div className="wallet-actions wallet-actions-modern">
+        <div className={`wallet-actions wallet-actions-modern ${network==="devnet"?"wallet-actions-devnet":""}`}>
           <button
             disabled={busy}
             onClick={()=>{setXferToken("RIALO");setView("send")}}
           >
-            <span className="action-icon action-icon-send">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14"/>
-                <path d="m13 6 6 6-6 6"/>
-              </svg>
-            </span>
+            <span className="action-icon">↑</span>
             <small>SEND</small>
           </button>
 
@@ -1094,51 +1009,72 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
             disabled={busy||!addr}
             onClick={()=>{setXferToken("RIALO");setView("receive")}}
           >
-            <span className="action-icon action-icon-receive">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 3v13"/>
-                <path d="m6 10 6 6 6-6"/>
-              </svg>
-            </span>
+            <span className="action-icon">↓</span>
             <small>RECEIVE</small>
           </button>
+
+          <button
+            disabled={busy}
+            onClick={faucet}
+          >
+            <span className="action-icon">+</span>
+            <small>FAUCET</small>
+          </button>
+
+          {network!=="devnet"&&
+          <button
+            disabled={busy}
+            onClick={async()=>{setView("swap");await loadLiq()}}
+          >
+            <span className="action-icon">⇄</span>
+            <small>SWAP</small>
+          </button>
+          }
         </div>
       </div>
     </section>
 
     <section className="assets-section">
-      <div className="section-title">ASSETS</div>
+      <small>ASSETS</small>
 
       {network!=="devnet"&&testBal!==null&&
         <div
-          className="test-asset-row"
+          className="asset-item test-asset-item"
+          style={{cursor:"pointer"}}
           onClick={()=>setView("test")}
         >
           <div>
             <div className="asset-name">TEST</div>
             <div className="asset-symbol">Test Token</div>
           </div>
-          <div className="asset-value">{testBal}</div>
+          <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+            <div className="asset-value">{testBal}</div>
+            <span>›</span>
+          </div>
         </div>
       }
     </section>
 
     <section
-      className="activity-section"
+      className="card"
+      style={{marginTop:"14px",cursor:"pointer"}}
       onClick={async()=>{
         const o=!histOpen;
         setHistOpen(o);
         if(o&&kp) await loadHistory(kp.publicKey);
       }}
     >
-      <div className="section-title activity-title">
-        <span>ACTIVITY</span>
-        <span>{histOpen?"▴":"›"}</span>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <small>ACTIVITY</small>
+          
+        </div>
+        <span style={{fontSize:"22px"}}>{histOpen?"▴":"›"}</span>
       </div>
 
       {histOpen&&
-        <div className="activity-list">
-          
+        <div style={{marginTop:"14px"}}>
+          {histLoading&&<small>Loading…</small>}
 
           {!histLoading&&histItems.length===0&&
             <small>No transactions yet.</small>
@@ -1147,8 +1083,13 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           {histItems.map((h:any,i:number)=>
             <div
               key={i}
-              className="activity-row"
-              onClick={e=>e.stopPropagation()}
+              className="row"
+              style={{
+                justifyContent:"space-between",
+                alignItems:"center",
+                padding:"12px 0",
+                borderBottom:"1px solid #eee"
+              }}
             >
               <div>
                 <div style={{fontWeight:650}}>
@@ -1171,143 +1112,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       }
     </section>
    </>}
-
-   {view==="settings"&&
-    <section className="card page-card settings-page">
-      <button className="ghost back-button" onClick={()=>setView("home")}>
-        Back
-      </button>
-
-      <small>SETTINGS</small>
-      <h2>Wallet Settings</h2>
-
-      <div className="settings-group">
-        <small>SECURITY</small>
-
-        <button
-          className="settings-item"
-          disabled={busy||!phrase}
-          onClick={()=>{setSecretPopup("phrase");setShowSecret(false)}}
-        >
-          <span>Recovery Phrase</span>
-          <span>›</span>
-        </button>
-
-        <button
-          className="settings-item"
-          disabled={busy||!kp}
-          onClick={()=>{setSecretPopup("key");setShowSecret(false)}}
-        >
-          <span>Private Key</span>
-          <span>›</span>
-        </button>
-      </div>
-
-      {secretPopup&&
-        <div
-          style={{
-            position:"fixed",
-            inset:0,
-            zIndex:1000,
-            background:"rgba(0,0,0,.35)",
-            display:"flex",
-            alignItems:"center",
-            justifyContent:"center",
-            padding:"20px"
-          }}
-          onClick={()=>setSecretPopup(null)}
-        >
-          <div
-            className="card"
-            style={{
-              width:"100%",
-              maxWidth:"420px",
-              background:"#fff",
-              padding:"22px",
-              borderRadius:"18px",
-              boxShadow:"0 20px 60px rgba(0,0,0,.18)"
-            }}
-            onClick={e=>e.stopPropagation()}
-          >
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"18px"}}>
-              <h3 style={{margin:0}}>
-                {secretPopup==="phrase"?"Recovery Phrase":"Private Key"}
-              </h3>
-              <button
-                type="button"
-                className="ghost"
-                onClick={()=>setSecretPopup(null)}
-              >
-                ×
-              </button>
-            </div>
-
-            <div
-              style={{
-                padding:"14px",
-                border:"1px solid #e5e5e0",
-                borderRadius:"12px",
-                background:"#fafaf8",
-                wordBreak:"break-word",
-                fontFamily:"monospace",
-                fontSize:"13px",
-                lineHeight:"1.6",
-                minHeight:"54px"
-              }}
-            >
-              {showSecret
-                ? secretPopup==="phrase"
-                  ? phrase
-                  : (kp?.secretKey ? Array.from(kp.secretKey).map((b:any)=>b.toString(16).padStart(2,"0")).join("") : "")
-                : "••••••••••••••••••••••••"}
-            </div>
-
-            <div style={{display:"flex",gap:"10px",marginTop:"16px"}}>
-              <button
-                type="button"
-                className="ghost"
-                onClick={()=>setShowSecret(!showSecret)}
-              >
-                {showSecret?"Hide":"Show"}
-              </button>
-
-              <button
-                type="button"
-                className="primary"
-                onClick={async()=>{
-                  try{
-                    const value=secretPopup==="phrase"
-                      ? phrase
-                      : (kp?.secretKey ? Array.from(kp.secretKey).map((b:any)=>b.toString(16).padStart(2,"0")).join("") : "");
-                    if(!value) throw new Error("Secret unavailable");
-                    await navigator.clipboard.writeText(value);
-                    setStatus(secretPopup==="phrase"?"Recovery phrase copied.":"Private key copied.");
-                  }catch{
-                    setStatus(secretPopup==="phrase"?"Unable to copy recovery phrase.":"Unable to copy private key.");
-                  }
-                }}
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-        </div>
-      }
-
-      <div className="settings-group">
-        <small>WALLET</small>
-
-        <button
-          className="settings-item danger-setting"
-          disabled={busy||!activeWallet}
-          onClick={deleteActiveWallet}
-        >
-          <span>Delete Wallet</span>
-          <span>›</span>
-        </button>
-      </div>
-    </section>
-   }
 
    {view==="send"&&
     <section className="card page-card">
@@ -1470,28 +1274,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </section>
    }
 
-   {view==="faucet"&&
-    <section className="card faucet-page">
-      <button className="ghost back-button" onClick={()=>setView("home")}>
-        Back
-      </button>
-
-      <div className="faucet-page-content">
-        
-        <h2>RIALO Faucet</h2>
-        <p>Get RIALO tokens for testing on Rialo {network==="devnet"?"Devnet":"Testnet"}.</p>
-
-        <button
-          className="primary faucet-claim-button"
-          disabled={busy||!addr}
-          onClick={faucet}
-        >
-          {busy?"Claiming…":"Claim Faucet"}
-        </button>
-      </div>
-    </section>
-   }
-
    {view==="swap"&&
     <section className="card page-card">
       <button className="ghost back-button" onClick={()=>setView("home")}>
@@ -1511,8 +1293,9 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           (t2r?(testBal||"0"):(bal||"0")).replace(/,/g,"")
         );
         const get=n>0?+(n*(t2r?0.1:10)).toFixed(6):0;
+        const poolIn=t2r?(liq?.test??Infinity):(liq?.rialo??Infinity);
         const poolOut=t2r?(liq?.rialo??Infinity):(liq?.test??Infinity);
-        const noLiq=!!liq&&n>0&&get>poolOut;
+        const noLiq=!!liq&&n>0&&(n>poolIn||get>poolOut);
         const label=!liq
           ?"Loading liquidity…"
           :!(n>0)
@@ -1526,9 +1309,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           :"Swap";
         const off=busy||!liq||!(n>0)||n>have||noLiq;
 
-
-
-  return <>
+        return <>
           <div className="swap-box">
             <div className="swap-box-top">
               <small>You pay</small>
@@ -1604,7 +1385,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
             {label}
           </button>
 
-          {swapStatus&&<div className="status">{(()=>{const p="Swap successful: ";if(swapStatus.startsWith(p)){const h=swapStatus.slice(p.length);return <>{p}<span style={{textDecoration:"underline",cursor:"pointer"}} onClick={()=>window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+h,"_blank")}>{h}</span></>}return swapStatus})()}</div>}
+          {swapStatus&&<div className="status">{swapStatus}</div>}
         </>
       })()}
     </section>
@@ -1612,7 +1393,13 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 
    <div className="status">{status}</div>
 
-
+   <button
+     className="danger"
+     disabled={busy||!activeWallet}
+     onClick={deleteActiveWallet}
+   >
+     Delete Wallet
+   </button>
    </>}
   {confirmBox&&
     <div className="confirm-overlay">
@@ -1657,7 +1444,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
     </div>
   }
 
-  <footer>©2026 Rialo Wallet. </footer>
+  <footer>Rialo Testnet ·</footer>
  </main>
 </>
 }
