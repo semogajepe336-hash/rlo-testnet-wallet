@@ -172,7 +172,7 @@ const[recoveryOpen,setRecoveryOpen]=useState(false);
   let cancelled=false;
 
   async function loadBalance(){
-   setStatus(`Loading ${network==="devnet"?"DevNet":"Testnet"} balance…`);
+   
    try{
     const b=await client.getBalance(kp.publicKey);
 
