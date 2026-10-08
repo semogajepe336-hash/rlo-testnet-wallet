@@ -598,6 +598,7 @@ function toBase58(b:Uint8Array){const A="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdef
     );
 
     setFaucetStatus("Claim successful: "+(typeof sig==="string"?sig:toBase58(Uint8Array.from(sig as any))));
+    setBusy(false);
     for(let i=0;i<6;i++){
       await new Promise(r=>setTimeout(r,2000));
       await refresh(publicKey);
