@@ -583,6 +583,7 @@ function copyKey(){
   }
  }
 
+function toBase58(b:Uint8Array){const A="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";const d:number[]=[];for(const byte of b){let c=byte;for(let j=0;j<d.length;j++){c+=d[j]<<8;d[j]=c%58;c=(c/58)|0}while(c>0){d.push(c%58);c=(c/58)|0}}let s="";for(let k=0;k<b.length&&b[k]===0;k++)s+="1";for(let q=d.length-1;q>=0;q--)s+=A[d[q]];return s}
  async function faucet(){
   if(!kp)return;
 
@@ -596,7 +597,7 @@ function copyKey(){
       BigInt(KELVIN_PER_RLO)
     );
 
-    setFaucetStatus("Claim successful: "+sig.toString());
+    setFaucetStatus("Claim successful: "+(typeof sig==="string"?sig:toBase58(Uint8Array.from(sig as any))));
     for(let i=0;i<6;i++){
       await new Promise(r=>setTimeout(r,2000));
       await refresh(publicKey);
