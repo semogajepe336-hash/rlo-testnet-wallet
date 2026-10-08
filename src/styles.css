@@ -3258,3 +3258,17 @@ main:has(.card.center) .card.center{
   margin-left: 0 !important;
   margin-right: auto !important;
 }
+
+/* Center all main boxes (desktop mode) */
+.grid,
+.wallet-manager,
+.balance-card,
+.assets-section,
+.activity-section,
+.card.center {
+  width: 100% !important;
+  max-width: 900px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
