@@ -587,7 +587,7 @@ function copyKey(){
 
   const publicKey=kp.publicKey;
   setBusy(true);
-  setStatus(`Requesting 1 Rialo from ${network==="devnet"?"DevNet":"Testnet"}…`);
+  setFaucetStatus("Claiming faucet…");
 
   try{
     const sig=await client.requestAirdrop(
@@ -595,7 +595,7 @@ function copyKey(){
       BigInt(KELVIN_PER_RLO)
     );
 
-    setStatus(`Faucet requested on ${network==="devnet"?"DevNet":"Testnet"}: ${sig.toString()}`);
+    setFaucetStatus("Claim successful: "+sig.toString());
     for(let i=0;i<6;i++){
       await new Promise(r=>setTimeout(r,2000));
       await refresh(publicKey);
@@ -606,7 +606,7 @@ function copyKey(){
     setStatus("");
   }catch(e:any){
     console.error("Faucet error:",e);
-    setStatus(`Faucet failed on ${network==="devnet"?"DevNet":"Testnet"}: ${e?.message||String(e)}`);
+    setFaucetStatus(`Faucet failed on ${network==="devnet"?"DevNet":"Testnet"}: ${e?.message||String(e)}`);
   }finally{
     setBusy(false);
   }
@@ -1495,6 +1495,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
         >
           {busy?"Claiming…":"Claim Faucet"}
         </button>
+        {faucetStatus&&<div className="status" style={{marginTop:"16px",wordBreak:"break-all"}}>{(()=>{const p="Claim successful: ";if(faucetStatus.startsWith(p)){const h=faucetStatus.slice(p.length);return <>{p}<span style={{textDecoration:"underline",cursor:"pointer"}} onClick={()=>window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+h,"_blank")}>{h}</span></>}return faucetStatus})()}</div>}
       </div>
     </section>
    }
