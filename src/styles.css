@@ -3214,3 +3214,26 @@ main:has(.card.center) .card.center{
 .faucet-page-content .faucet-claim-button {
   margin: 12px auto 0 !important;
 }
+
+/* Faucet page: centered */
+.faucet-page-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+.faucet-page-content h2 {
+  margin-bottom: 8px;
+}
+.faucet-icon {
+  color: #171717;
+  line-height: 0;
+  margin: 12px 0 16px;
+}
+.faucet-icon svg {
+  width: 72px;
+  height: 72px;
+}
+.faucet-page-content .faucet-claim-button {
+  margin: 12px auto 0 !important;
+}
