@@ -1371,7 +1371,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       </button>
 
       <small>RECEIVE {xferToken}</small>
-      <h2>Receive {xferToken}</h2>
       <p>Share this address to receive {xferToken}.</p>
 
       <div className="receive-address">
