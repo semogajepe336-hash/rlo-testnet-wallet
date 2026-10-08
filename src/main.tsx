@@ -1316,7 +1316,6 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       </button>
 
       <small>SEND RIALO</small>
-      <h2>Send RIALO</h2>
       <p>Transfer RIALO to another Rialo address.</p>
 
       <label>Recipient address</label>
