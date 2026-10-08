@@ -3181,3 +3181,17 @@ main:has(.card.center) .card.center{
   padding:18px 16px !important;
   box-shadow:0 1px 3px rgba(0,0,0,.04) !important;
 }
+
+/* All pages: same card size, centered */
+.card.page-card,
+.page-card:has(.swap-box) {
+  width: 100% !important;
+  max-width: 640px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+.card.page-card label {
+  display: block;
+  margin-top: 26px !important;
+  margin-bottom: 10px !important;
+}
