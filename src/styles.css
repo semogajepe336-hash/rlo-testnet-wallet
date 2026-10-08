@@ -3195,3 +3195,22 @@ main:has(.card.center) .card.center{
   margin-top: 26px !important;
   margin-bottom: 10px !important;
 }
+
+/* Faucet page: centered */
+.faucet-page-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+.faucet-page-content h2 {
+  margin-bottom: 8px;
+}
+.faucet-icon {
+  font-size: 64px;
+  line-height: 1;
+  margin: 12px 0 16px;
+}
+.faucet-page-content .faucet-claim-button {
+  margin: 12px auto 0 !important;
+}

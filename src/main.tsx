@@ -1477,6 +1477,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       <div className="faucet-page-content">
         
         <h2>RIALO Faucet</h2>
+        <div className="faucet-icon">🚰</div>
         <p>Get RIALO tokens for testing on Rialo {network==="devnet"?"Devnet":"Testnet"}.</p>
 
         <button
