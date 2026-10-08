@@ -3245,3 +3245,10 @@ main:has(.card.center) .card.center{
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
+
+/* Activity: same max width as Assets/Balance */
+.activity-section {
+  max-width: 900px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
