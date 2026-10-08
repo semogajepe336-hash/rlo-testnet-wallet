@@ -1477,6 +1477,15 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       <div className="faucet-page-content">
         
         <h2>RIALO Faucet</h2>
+        <div className="faucet-icon">
+          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M24 8h16M32 8v12" />
+            <path d="M10 14v12" />
+            <path d="M10 20h32a8 8 0 0 1 8 8v6" />
+            <rect x="44" y="34" width="12" height="5" rx="1.5" />
+            <path d="M50 46c-3 4-4 6-4 8a4 4 0 0 0 8 0c0-2-1-4-4-8z" />
+          </svg>
+        </div>
         <p>Get RIALO tokens for testing on Rialo {network==="devnet"?"Devnet":"Testnet"}.</p>
 
         <button
