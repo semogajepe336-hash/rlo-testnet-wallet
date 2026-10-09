@@ -136,7 +136,7 @@ function App(){
  const[showVaultPassword,setShowVaultPassword]=useState(false);
  const[menuOpen,setMenuOpen]=useState(false);
 const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap"|"faucet">("home");
-  useEffect(()=>{ if(view!=="faucet") setFaucetStatus(""); if(view!=="swap"){setSwapStatus("");setSwapAmt("");} },[view]);
+  useEffect(()=>{ setXferStatus(""); if(view!=="faucet") setFaucetStatus(""); if(view!=="swap"){setSwapStatus("");setSwapAmt("");} },[view]);
   const renderStatus=(s:string)=>{const m=s.match(/^(.+?: )([1-9A-HJ-NP-Za-km-z]{60,})$/);if(!m)return <>{s}</>;return <>{m[1]}<span style={{textDecoration:"underline",cursor:"pointer"}} onClick={()=>window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+m[2],"_blank")}>{m[2]}</span></>};
 const[recoveryOpen,setRecoveryOpen]=useState(false);
 
