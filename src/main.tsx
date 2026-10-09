@@ -1,3 +1,5 @@
+import QRCode from "qrcode";
+import {useEffect as useEffectQr, useRef as useRefQr} from "react";
 import React,{useEffect,useMemo,useState}from"react";
 import{createRoot}from"react-dom/client";
 import{Keypair,Mnemonic,PublicKey,TransactionBuilder,transferInstruction,createRialoClient,getDefaultRialoClientConfig,KELVIN_PER_RLO,SYSTEM_PROGRAM_ID}from"@rialo/ts-cdk";
@@ -1384,8 +1386,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
       </div>
 
       <div className="receive-placeholder">
-        <div>◎</div>
-        <small>QR CODE</small>
+        <QrCode value={addr} />
       </div>
     </section>
    }
@@ -1673,3 +1674,13 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
 </>
 }
 createRoot(document.getElementById("root")!).render(<App/>);
+
+function QrCode({value}:{value:string}){
+  const ref=useRefQr<HTMLCanvasElement>(null);
+  useEffectQr(()=>{
+    if(ref.current&&value){
+      QRCode.toCanvas(ref.current,value,{width:220,margin:1});
+    }
+  },[value]);
+  return <canvas ref={ref}/>;
+}

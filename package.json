@@ -15,9 +15,13 @@
     "@rialo/wallet-standard": "^0.1.1",
     "@vitejs/plugin-react": "^5.0.4",
     "@wallet-standard/app": "^1.1.1",
+    "qrcode": "^1.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "typescript": "^5.9.2",
     "vite": "^7.1.5"
+  },
+  "devDependencies": {
+    "@types/qrcode": "^1.5.6"
   }
 }
