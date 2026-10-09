@@ -1453,7 +1453,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
               type="button"
               className="ghost max-button"
               disabled={busy||!testBal}
-              onClick={()=>setAmount(testBal||"0")}
+              onClick={()=>setAmount((testBal||"0").replace(/,/g,""))}
             >
               MAX
             </button>
