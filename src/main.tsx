@@ -136,6 +136,8 @@ function App(){
  const[showVaultPassword,setShowVaultPassword]=useState(false);
  const[menuOpen,setMenuOpen]=useState(false);
 const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap"|"faucet">("home");
+  useEffect(()=>{ if(view!=="faucet") setFaucetStatus(""); if(view!=="swap"){setSwapStatus("");setSwapAmt("");} },[view]);
+  const renderStatus=(s:string)=>{const m=s.match(/^(.+?: )([1-9A-HJ-NP-Za-km-z]{60,})$/);if(!m)return <>{s}</>;return <>{m[1]}<span style={{textDecoration:"underline",cursor:"pointer"}} onClick={()=>window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+m[2],"_blank")}>{m[2]}</span></>};
 const[recoveryOpen,setRecoveryOpen]=useState(false);
 
  async function initializeVault(){
@@ -628,7 +630,7 @@ async function send(){
    for(const i of ixs)tb=tb.addInstruction(i);
    const tx=tb.build();
    setXferStatus("Signing and submitting…");const sig=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
-   const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setXferStatus("Sent: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest();await loadHistory()
+   const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setXferStatus("Send "+xferToken+" successful: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest();await loadHistory()
   }catch(e:any){setStatus("Send failed: "+(e?.message||e))}finally{setBusy(false)}
  }
  async function deleteActiveWallet(){
@@ -737,7 +739,7 @@ function copyAddress(){
         setBal(null);
         setTestBal(null);
         setLiq(null);
-        if(next==="devnet" && view==="swap") setView("home");
+        if(next==="devnet" && view==="swap") setView("home");setXferStatus("");setFaucetStatus("");setSwapStatus("");
         setStatus(`Switched to ${next==="devnet"?"DevNet":"Testnet"}`);
       }}
       aria-label="Network"
@@ -1365,7 +1367,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
         {busy?"Processing…":"Send RIALO"}
       </button>
 
-      {xferStatus&&<div className="status">{xferStatus}</div>}
+      {xferStatus&&<div className="status" style={{wordBreak:"break-all"}}>{renderStatus(xferStatus)}</div>}
     </section>
    }
 
@@ -1466,7 +1468,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
             {busy?"Processing…":"Send TEST"}
           </button>
 
-          {xferStatus&&<div className="status">{xferStatus}</div>}
+          {xferStatus&&<div className="status" style={{wordBreak:"break-all"}}>{renderStatus(xferStatus)}</div>}
         </div>
       }
     </section>
