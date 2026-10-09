@@ -317,6 +317,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const d=PublicKey.fromString(to.trim());
  const n=Number(amount);
  if(!Number.isFinite(n)||n<=0)throw Error("Enter a valid amount.");
+ if(xferToken==="RIALO"){const b=parseFloat(String(bal||"0").replace(/,/g,""));if(b-n<0.1-1e-9)throw Error("Keep at least 0.1 RIALO in your wallet for fees.");}
  setConfirmBox({title:"Confirm Transfer",rows:[["To",d.toString()],["Amount",n+" "+xferToken],["Network fee","~0.000005 RIALO"]],run:send});
  }catch(e:any){setXferStatus("Send failed: "+(e?.message||e))}
  }
@@ -631,7 +632,7 @@ async function send(){
    const tx=tb.build();
    setXferStatus("Signing and submitting…");const sig=await client.sendAndConfirmTransaction(tx.sign(kp).serialize());
    const r:any=sig;if(!(r.executed===true&&!r.err))throw Error("Transfer failed on-chain.");setXferStatus("Send "+xferToken+" successful: "+(sig.signature?.toString?.()||sig.toString()));setAmount("");await refresh();await loadTest();await loadHistory()
-  }catch(e:any){setStatus("Send failed: "+(e?.message||e))}finally{setBusy(false)}
+  }catch(e:any){setXferStatus("Send "+xferToken+" failed: "+(e?.message||e))}finally{setBusy(false)}
  }
  async function deleteActiveWallet(){
   const wallet=wallets.find((w:any)=>w.id===activeWallet);
@@ -1350,7 +1351,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
           onClick={()=>{
   const b=parseFloat(String(bal||"0").replace(/,/g,""));
   const fee=0.000005;
-  setAmount(String(Math.max(0,b-fee)));
+  setAmount(String(Math.max(0,+(b-0.1).toFixed(6))));
 }}
         >
           MAX
