@@ -1,4 +1,4 @@
-import { parseTransfer } from "./txInfo";
+import { parseTransfer, parseSwap } from "./txInfo";
 import QRCode from "qrcode";
 import {useEffect as useEffectQr, useRef as useRefQr} from "react";
 import React,{useEffect,useMemo,useState}from"react";
@@ -356,7 +356,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  if(logs.some(l=>l.includes("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG")))kind="Swap";
  else if(logs.some(l=>l.includes("TransferChecked")))kind="Transfer TEST";
  else if(logs.length)kind="Transfer RIALO";
- if(kind==="Transfer RIALO")info=parseTransfer(tx,pub.toString());
+ if(kind==="Transfer RIALO")info=parseTransfer(tx,pub.toString());else if(kind==="Swap")info=parseSwap(tx,pub.toString());
  }catch(e){}
  out.push({sig:s.signature,ok,kind,info,blockTime:s.blockTime?Number(s.blockTime):null});
  }
@@ -1168,7 +1168,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
                 <small>{h.info?h.info.other+" · ":""}{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
               </div>
 
-              <div style={{textAlign:"right"}}>{h.info&&<div style={{fontWeight:650,color:h.info.sign==="+"?"#1a7f4b":"#111"}}>{h.info.sign}{h.info.amount.toLocaleString("en-US",{maximumFractionDigits:4})} RIALO</div>}<button
+              <div style={{textAlign:"right"}}>{h.info&&h.info.legs.map((l:any,k:number)=><div key={k} style={{fontWeight:650,color:l.sign==="+"?"#1a7f4b":"#111"}}>{l.sign}{l.amount.toLocaleString("en-US",{maximumFractionDigits:4})} {l.sym}</div>)}<button
                 type="button"
                 className="ghost"
                 onClick={(e)=>{e.stopPropagation();copySig(h.sig)}}
