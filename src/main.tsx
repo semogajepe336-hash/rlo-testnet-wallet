@@ -1,3 +1,4 @@
+import { parseTransfer } from "./txInfo";
 import QRCode from "qrcode";
 import {useEffect as useEffectQr, useRef as useRefQr} from "react";
 import React,{useEffect,useMemo,useState}from"react";
@@ -347,7 +348,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const sigs:any[]=await client.getSignaturesForAddress(pub,{limit:10});
  const out=[];
  for(const s of sigs){
- let kind="Other",ok=!s.err;
+ let kind="Other",ok=!s.err,info:any=null;
  try{
  const tx:any=await (client as any).queryClient.call("getTransaction",[{signature:s.signature}]);
  const logs:string[]=tx?.meta?.logMessages||[];
@@ -355,8 +356,9 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  if(logs.some(l=>l.includes("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG")))kind="Swap";
  else if(logs.some(l=>l.includes("TransferChecked")))kind="Transfer TEST";
  else if(logs.length)kind="Transfer RIALO";
+ if(kind==="Transfer RIALO")info=parseTransfer(tx,pub.toString());
  }catch(e){}
- out.push({sig:s.signature,ok,kind,blockTime:s.blockTime?Number(s.blockTime):null});
+ out.push({sig:s.signature,ok,kind,info,blockTime:s.blockTime?Number(s.blockTime):null});
  }
  setHistItems(out);
  }catch(e:any){setStatus("History error: "+(e?.message||e))}
@@ -1160,19 +1162,19 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
             >
               <div>
                 <div style={{fontWeight:650}}>
-                  {h.kind}
+                  {h.info?h.info.label:h.kind}
                   {!h.ok&&<span style={{color:"#c0392b"}}> · Failed</span>}
                 </div>
-                <small>{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
+                <small>{h.info?h.info.other+" · ":""}{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
               </div>
 
-              <button
+              <div style={{textAlign:"right"}}>{h.info&&<div style={{fontWeight:650,color:h.info.sign==="+"?"#1a7f4b":"#111"}}>{h.info.sign}{h.info.amount.toLocaleString("en-US",{maximumFractionDigits:4})}</div>}<button
                 type="button"
                 className="ghost"
                 onClick={(e)=>{e.stopPropagation();copySig(h.sig)}}
               >
                 {copiedSig===h.sig?"Copied!":h.sig.slice(0,6)+"…"+h.sig.slice(-6)}
-              </button>
+              </button></div>
             </div>
           )}
         </div>
