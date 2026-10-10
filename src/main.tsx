@@ -1,4 +1,4 @@
-import { parseTransfer, parseSwap } from "./txInfo";
+import { parseTransfer, parseSwap, parseToken } from "./txInfo";
 import QRCode from "qrcode";
 import {useEffect as useEffectQr, useRef as useRefQr} from "react";
 import React,{useEffect,useMemo,useState}from"react";
@@ -356,7 +356,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  if(logs.some(l=>l.includes("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG")))kind="Swap";
  else if(logs.some(l=>l.includes("TransferChecked")))kind="Transfer TEST";
  else if(logs.length)kind="Transfer RIALO";
- if(kind==="Transfer RIALO")info=parseTransfer(tx,pub.toString());else if(kind==="Swap")info=parseSwap(tx,pub.toString());
+ if(kind==="Transfer RIALO")info=parseTransfer(tx,pub.toString());else if(kind==="Swap")info=parseSwap(tx,pub.toString());else if(kind==="Transfer TEST")info=parseToken(tx,pub.toString());
  }catch(e){}
  out.push({sig:s.signature,ok,kind,info,blockTime:s.blockTime?Number(s.blockTime):null});
  }

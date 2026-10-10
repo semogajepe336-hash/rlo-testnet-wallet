@@ -56,3 +56,27 @@ export function parseSwap(res: any, me: string): any {
     return { label: "Swap", other: legs[0].sym + " → " + legs[1].sym, legs };
   } catch { return null; }
 }
+
+export function parseToken(res: any, me: string): any {
+  try {
+    const keys: string[] = res.transaction.message.accountKeys;
+    const ixs = allIx(res);
+    for (const ix of ixs) {
+      const b = b58bytes(ix.data);
+      if (keys[ix.programIdIndex].startsWith("Token") && b[0] === 12 && b.length >= 10) {
+        const amount = u64(b, 1) / Math.pow(10, b[9]);
+        const auth = keys[ix.accounts[3]], dest = keys[ix.accounts[2]];
+        const out = auth === me;
+        let other = out ? dest : auth;
+        if (out) {
+          for (const j of ixs) {
+            if (keys[j.programIdIndex].startsWith("ATokenGP") && keys[j.accounts[1]] === dest) other = keys[j.accounts[2]];
+          }
+        }
+        const sign = out ? "-" : "+";
+        return { label: out ? "Sent" : "Received", sign, amount, other: short(other), legs: [{ sign, amount, sym: "TEST" }] };
+      }
+    }
+    return null;
+  } catch { return null; }
+}
