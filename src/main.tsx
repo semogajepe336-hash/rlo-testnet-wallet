@@ -1168,7 +1168,7 @@ setVaultUnlocked(true);}catch{setStatus("Incorrect password. Please try again.")
                 <small>{h.info?h.info.other+" · ":""}{h.blockTime?new Date(h.blockTime).toLocaleString():"—"}</small>
               </div>
 
-              <div style={{textAlign:"right"}}>{h.info&&<div style={{fontWeight:650,color:h.info.sign==="+"?"#1a7f4b":"#111"}}>{h.info.sign}{h.info.amount.toLocaleString("en-US",{maximumFractionDigits:4})}</div>}<button
+              <div style={{textAlign:"right"}}>{h.info&&<div style={{fontWeight:650,color:h.info.sign==="+"?"#1a7f4b":"#111"}}>{h.info.sign}{h.info.amount.toLocaleString("en-US",{maximumFractionDigits:4})} RIALO</div>}<button
                 type="button"
                 className="ghost"
                 onClick={(e)=>{e.stopPropagation();copySig(h.sig)}}
