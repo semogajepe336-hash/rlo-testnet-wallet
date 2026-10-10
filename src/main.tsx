@@ -275,12 +275,12 @@ return()=>{cancelled=true;try{ws&&ws.close();}catch(e){}if(fallbackInterval)clea
  data[0]=t2r?0:1;
  new DataView(data.buffer).setBigUint64(1,BigInt(Math.round(n*(t2r?1e6:1e9))),true);
  const A=(k:any,w:boolean,s=false)=>({pubkey:k,isSigner:s,isWritable:w});
- const ix:any={programId:P("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG"),data,accounts:[
+ const ix:any={programId:P("CoGPfDKLK62sHCucTsQ19FKABheBFGiK9KgaLp7qu2n6"),data,accounts:[
  A(kp.publicKey,true,true),
  A(ataOf(kp.publicKey),true),
- A(P("EB8MZ8usqZSjh6TNJwEEnEurH4ojFXnNTzrAaZPDuG9b"),true),
- A(P("BV7xahNAH9vnwE3bNzNf1iHpuokk8cdj8iMoka7DnM1M"),false),
- A(P("CvbVJTpgDixPoCPVNBbbKdjcSo4awnC6rMCpQSBzACY4"),true),
+ A(P("7knvBygF3cQ6NwA46RJYvcaacmGy4jU4PtpTV1dPXLmR"),true),
+ A(P("66eBZi4mVct95LwPinS5kUxaUHRTkAPac5qWrmn8GPE"),false),
+ A(P("8PXHFcorVnpojmvoTWvHXMAp2z8F83JnqPNd9wuuKD9v"),true),
  A(P("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"),false),
  A(SYS,false)]};
 const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKey,true,true),A(ataOf(kp.publicKey),true),A(kp.publicKey,false),A(TMINT,false),A(SYS,false),A(TK22,false)]};
@@ -299,8 +299,8 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  async function loadLiq(){
  try{
  const P=(s:string)=>PublicKey.fromString(s);
- const t:any=await client.getTokenAccountBalance(P("EB8MZ8usqZSjh6TNJwEEnEurH4ojFXnNTzrAaZPDuG9b"));
- const r:any=await client.getBalance(P("CvbVJTpgDixPoCPVNBbbKdjcSo4awnC6rMCpQSBzACY4"));
+ const t:any=await client.getTokenAccountBalance(P("7knvBygF3cQ6NwA46RJYvcaacmGy4jU4PtpTV1dPXLmR"));
+ const r:any=await client.getBalance(P("8PXHFcorVnpojmvoTWvHXMAp2z8F83JnqPNd9wuuKD9v"));
  setLiq({test:parseFloat(t.uiAmountString),rialo:Number(r)/KELVIN_PER_RLO});
  }catch(e:any){setLiq(null)}
  }
@@ -353,7 +353,7 @@ const mkAta:any={programId:ATAP,data:new Uint8Array([1]),accounts:[A(kp.publicKe
  const tx:any=await (client as any).queryClient.call("getTransaction",[{signature:s.signature}]);
  const logs:string[]=tx?.meta?.logMessages||[];
  ok=!tx?.meta?.err;
- if(logs.some(l=>l.includes("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG")))kind="Swap";
+ if(logs.some(l=>(l.includes("3kYVsj8TMon5oTaS2udeuc9NfXdAVZmgUSKdpwSN4jUG")||l.includes("CoGPfDKLK62sHCucTsQ19FKABheBFGiK9KgaLp7qu2n6"))))kind="Swap";
  else if(logs.some(l=>l.includes("TransferChecked")))kind="Transfer TEST";
  else if(logs.length)kind="Transfer RIALO";
  if(kind==="Transfer RIALO")info=parseTransfer(tx,pub.toString());else if(kind==="Swap")info=parseSwap(tx,pub.toString());else if(kind==="Transfer TEST")info=parseToken(tx,pub.toString());
@@ -799,7 +799,7 @@ function copyAddress(){
           <span>›</span>
         </button>
 
-        {false&&<button
+        {true&&<button
           onClick={async()=>{
             setMenuOpen(false);
             setView("swap");
