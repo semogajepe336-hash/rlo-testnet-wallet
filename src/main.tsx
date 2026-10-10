@@ -7,7 +7,7 @@ import{Keypair,Mnemonic,PublicKey,TransactionBuilder,transferInstruction,createR
 import"./styles.css";
 function Ic({d}:{d:string}){return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:"6px",verticalAlign:"-2px"}}><path d={d}/></svg>}
 const TK22=PublicKey.fromString("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
-const TMINT=PublicKey.fromString("BV7xahNAH9vnwE3bNzNf1iHpuokk8cdj8iMoka7DnM1M");
+const TMINT=PublicKey.fromString("66eBZi4mVct95LwPinS5kUxaUHRTkAPac5qWrmn8GPE");
 const ATAP=PublicKey.fromString("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 const ataOf=(o:any)=>PublicKey.findProgramAddress([o.toBytes(),TK22.toBytes(),TMINT.toBytes()],ATAP)[0];
 const testXfer=(from:any,dest:any,n:number):any[]=>{
@@ -799,7 +799,7 @@ function copyAddress(){
           <span>›</span>
         </button>
 
-        {network==="testnet"&&<button
+        {false&&<button
           onClick={async()=>{
             setMenuOpen(false);
             setView("swap");
