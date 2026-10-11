@@ -136,7 +136,7 @@ function App(){
  const[vaultUnlocked,setVaultUnlocked]=useState(false);
  const[showVaultPassword,setShowVaultPassword]=useState(false);
  const[menuOpen,setMenuOpen]=useState(false);
-const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap"|"faucet">("home");const [captchaToken,setCaptchaToken]=useState("");useEffect(()=>{if(view!=="faucet")return;setCaptchaToken("");let id:any=null;let t:any=null;const mount=()=>{const w:any=window;const el=document.getElementById("cf-captcha");if(w.turnstile&&el){el.innerHTML="";id=w.turnstile.render(el,{sitekey:"0x4AAAAAAFTSup3nqJxMYUqb",callback:(tok:string)=>setCaptchaToken(tok),"expired-callback":()=>setCaptchaToken(""),"error-callback":()=>setCaptchaToken("")});}else{t=setTimeout(mount,300);}};mount();return()=>{if(t)clearTimeout(t);try{(window as any).turnstile?.remove(id)}catch{}};},[view]);
+const[view,setView]=useState<"home"|"send"|"receive"|"test"|"swap"|"faucet">("home");const [captchaToken,setCaptchaToken]=useState("");useEffect(()=>{if(view!=="faucet")return;setCaptchaToken("");let t:any=null;const mount=()=>{const w:any=window;const el=document.getElementById("cf-captcha");if(w.grecaptcha&&w.grecaptcha.render&&el){el.innerHTML="";const d=document.createElement("div");el.appendChild(d);w.__rcId=w.grecaptcha.render(d,{sitekey:"6LdgmOktAAAAALK8kVhUQ_NXVNU3kA4JONTIPHvI",callback:(tok:string)=>setCaptchaToken(tok),"expired-callback":()=>setCaptchaToken(""),"error-callback":()=>setCaptchaToken("")});}else{t=setTimeout(mount,300);}};mount();return()=>{if(t)clearTimeout(t);};},[view]);
   useEffect(()=>{ setXferStatus("");setSendOpen(false);setTo("");setAmount(""); if(view!=="faucet") setFaucetStatus(""); if(view!=="swap"){setSwapStatus("");setSwapAmt("");} },[view]);
   const renderStatus=(s:string)=>{const m=s.match(/^(.+?: )([1-9A-HJ-NP-Za-km-z]{60,})$/);if(!m)return <>{s}</>;return <>{m[1]}<span style={{textDecoration:"underline",cursor:"pointer"}} onClick={()=>window.open((network==="devnet"?"https://rialo-explorer-devnet-direct.vercel.app":"https://rialo-explorer-testnet-direct.vercel.app")+"/txs/"+m[2],"_blank")}>{m[2]}</span></>};
 const[recoveryOpen,setRecoveryOpen]=useState(false);
@@ -596,7 +596,7 @@ function toBase58(b:Uint8Array){const A="123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdef
 
   const publicKey=kp.publicKey;
   setBusy(true);
-  setFaucetStatus("Claiming faucet…");try{(window as any).turnstile?.reset()}catch{}setCaptchaToken("");
+  setFaucetStatus("Claiming faucet…");try{(window as any).grecaptcha?.reset((window as any).__rcId)}catch{}setCaptchaToken("");
 
   try{
     const sig=await client.requestAirdrop(
