@@ -799,7 +799,7 @@ function copyAddress(){
           <span>›</span>
         </button>
 
-        {true&&<button
+        {network!=="devnet"&&<button
           onClick={async()=>{
             setMenuOpen(false);
             setView("swap");
